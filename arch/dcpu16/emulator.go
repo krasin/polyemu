@@ -14,6 +14,15 @@ const (
 type Emulator struct {
 }
 
+type memory []byte
+
+func (m memory) At(ind uint16) uint16 {
+	if int(2*ind) >= len(m) {
+		return 0
+	}
+	return uint16(m[2*ind]) + (uint16(m[2*ind+1]) << 8)
+}
+
 type regState []uint64
 
 func (r regState) PC() uint16 {
@@ -21,14 +30,15 @@ func (r regState) PC() uint16 {
 }
 
 type state struct {
-	mem []byte
+	mem memory
 	reg regState
 }
 
-func (st *state) Fetch() emu.Code {
-	if int(st.reg.PC()) >= len(st.mem) {
-		return emu.MemoryAccessViolation
-	}
+func (st *state) Fetch() (c emu.Code) {
+	v := st.mem.At(st.reg.PC())
+	opcode := v & 0x1F
+	fmt.Printf("opcode: %x\n", opcode)
+
 	return emu.OK
 }
 
@@ -44,6 +54,6 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 }
 
 func (e *Emulator) Step(st *emu.State) (*emu.Diff, emu.Code) {
-	st16 := &state{st.Mem, regState(st.Reg)}
+	st16 := &state{memory(st.Mem), regState(st.Reg)}
 	return st16.Step()
 }

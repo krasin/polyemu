@@ -18,7 +18,7 @@ type Status uint32
 
 const (
 	OK                      = 0
-	RegStateTooSmall        = 0
+	RegStateTooSmall        = 1
 	MemoryAccessViolation   = 2
 	InstructionDecodeFailed = 3
 	Interrupt               = 4

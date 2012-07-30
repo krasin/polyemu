@@ -70,12 +70,17 @@ type state struct {
 	opcode int
 }
 
+func (st *state) fetchSpecial(v uint16) emu.Code {
+	return emu.NotImplemented
+}
+
 func (st *state) Fetch() (c emu.Code) {
 	v := st.mem.At(st.reg.PC())
 	st.opcode = int(v & 0x1F)
 	fmt.Printf("opcode: %x\n", st.opcode)
 	switch st.opcode {
 	case SPECIAL_OP:
+		return st.fetchSpecial(v)
 	case SET_OP:
 	case ADD_OP:
 	case SUB_OP:

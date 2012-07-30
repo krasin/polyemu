@@ -22,4 +22,5 @@ const (
 	MemoryAccessViolation = 2
 	InvalidOpcode         = 3
 	Interrupt             = 4
+	NotImplemented        = 5
 )

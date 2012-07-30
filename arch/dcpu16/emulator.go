@@ -68,15 +68,17 @@ type state struct {
 	reg regState
 
 	opcode int
+	a      int
+	b      int
 }
 
-func (st *state) fetchSpecial(v uint16) emu.Code {
+func (st *state) fetchSpecial(v int) emu.Code {
 	return emu.NotImplemented
 }
 
 func (st *state) Fetch() (c emu.Code) {
-	v := st.mem.At(st.reg.PC())
-	st.opcode = int(v & 0x1F)
+	v := int(st.mem.At(st.reg.PC()))
+	st.opcode = v & 0x1F
 	fmt.Printf("opcode: %x\n", st.opcode)
 	switch st.opcode {
 	case SPECIAL_OP:
@@ -111,6 +113,9 @@ func (st *state) Fetch() (c emu.Code) {
 	default:
 		return emu.InvalidOpcode
 	}
+	st.a = (v >> 10) & 0x3F
+	st.b = (v >> 5) & 0x1F
+	fmt.Printf("a: %x, b: %x\n", st.a, st.b)
 
 	return emu.OK
 }

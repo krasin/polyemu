@@ -17,9 +17,9 @@ type Emulator interface {
 type Code uint32
 
 const (
-	OK                      = 0
-	RegStateTooSmall        = 1
-	MemoryAccessViolation   = 2
-	InstructionDecodeFailed = 3
-	Interrupt               = 4
+	OK                    = 0
+	RegStateTooSmall      = 1
+	MemoryAccessViolation = 2
+	InvalidOpcode         = 3
+	Interrupt             = 4
 )

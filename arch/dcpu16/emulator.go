@@ -25,14 +25,14 @@ type state struct {
 	reg regState
 }
 
-func (st *state) Fetch() emu.Status {
+func (st *state) Fetch() emu.Code {
 	if int(st.reg.PC()) >= len(st.mem) {
 		return emu.MemoryAccessViolation
 	}
 	return emu.OK
 }
 
-func (st *state) Step() (diff emu.Diff, res emu.Status) {
+func (st *state) Step() (diff emu.Diff, res emu.Code) {
 	if len(st.reg) < RegCount {
 		res = emu.RegStateTooSmall
 		return
@@ -44,7 +44,7 @@ func (st *state) Step() (diff emu.Diff, res emu.Status) {
 	return
 }
 
-func (e *Emulator) Step(st *emu.State) (emu.Diff, emu.Status) {
+func (e *Emulator) Step(st *emu.State) (emu.Diff, emu.Code) {
 	st16 := &state{st.Mem, regState(st.Reg)}
 	return st16.Step()
 }

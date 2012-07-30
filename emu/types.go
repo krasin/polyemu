@@ -11,10 +11,10 @@ type Diff struct {
 }
 
 type Emulator interface {
-	Step(st *State) (Diff, Status)
+	Step(st *State) (Diff, Code)
 }
 
-type Status uint32
+type Code uint32
 
 const (
 	OK                      = 0

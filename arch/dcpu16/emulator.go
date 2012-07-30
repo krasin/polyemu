@@ -32,19 +32,18 @@ func (st *state) Fetch() emu.Code {
 	return emu.OK
 }
 
-func (st *state) Step() (diff emu.Diff, res emu.Code) {
+func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if len(st.reg) < RegCount {
-		res = emu.RegStateTooSmall
-		return
+		return nil, emu.RegStateTooSmall
 	}
-	if res = st.Fetch(); res != emu.OK {
+	if c = st.Fetch(); c != emu.OK {
 		return
 	}
 	fmt.Printf("lala\n")
 	return
 }
 
-func (e *Emulator) Step(st *emu.State) (emu.Diff, emu.Code) {
+func (e *Emulator) Step(st *emu.State) (*emu.Diff, emu.Code) {
 	st16 := &state{st.Mem, regState(st.Reg)}
 	return st16.Step()
 }

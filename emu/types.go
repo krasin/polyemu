@@ -11,7 +11,7 @@ type Diff struct {
 }
 
 type Emulator interface {
-	Step(st *State) (Diff, Code)
+	Step(st *State) (*Diff, Code)
 }
 
 type Code uint32

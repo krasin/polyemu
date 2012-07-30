@@ -40,6 +40,19 @@ const (
 	SBX_OP     = 0x1b
 	STI_OP     = 0x1e
 	STD_OP     = 0x1f
+
+	REG_ARG           = 1  // register (A, B, C, ...) value
+	REG_ADDR_ARG      = 2  // [register]
+	REG_ADDR_WORD_ARG = 3  // [register + next word]
+	PUSH_OR_POP_ARG   = 4  // (PUSH / [--SP]) if in b, or (POP / [SP++]) if in a
+	PEEK_ARG          = 5  // [SP] / PEEK
+	PEEK_WORD_ARG     = 6  // [SP + next word] / PICK n
+	SP_ARG            = 7  // SP value
+	PC_ARG            = 8  // PC value
+	EX_ARG            = 9  // EX value
+	ADDR_WORD_ARG     = 10 // [next word]
+	WORD_ARG          = 11 // next word (literal)
+	LITERAL_ARG       = 12 // literal (-1..30)
 )
 
 type Emulator struct {

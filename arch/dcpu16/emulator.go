@@ -20,6 +20,9 @@ func (m memory) At(ind uint16) uint16 {
 	if int(2*ind) >= len(m) {
 		return 0
 	}
+	if int(2*ind) == len(m)-1 {
+		return uint16(m[2*ind])
+	}
 	return uint16(m[2*ind]) + (uint16(m[2*ind+1]) << 8)
 }
 

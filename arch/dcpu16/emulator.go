@@ -160,91 +160,109 @@ func (st *state) fetchFirst() (c emu.Code) {
 	return emu.OK
 }
 
-func (st *state) fetchA() emu.Code {
-	switch st.a {
+func (st *state) fetchCommonArg(v int) (ar arg, ok bool) {
+	switch v {
 	// register
 	case 0x00:
-		st.argA = arg{REG_ARG, RA, 0}
+		return arg{REG_ARG, RA, 0}, true
 	case 0x01:
-		st.argA = arg{REG_ARG, RB, 0}
+		return arg{REG_ARG, RB, 0}, true
 	case 0x02:
-		st.argA = arg{REG_ARG, RC, 0}
+		return arg{REG_ARG, RC, 0}, true
 	case 0x03:
-		st.argA = arg{REG_ARG, RX, 0}
+		return arg{REG_ARG, RX, 0}, true
 	case 0x04:
-		st.argA = arg{REG_ARG, RY, 0}
+		return arg{REG_ARG, RY, 0}, true
 	case 0x05:
-		st.argA = arg{REG_ARG, RZ, 0}
+		return arg{REG_ARG, RZ, 0}, true
 	case 0x06:
-		st.argA = arg{REG_ARG, RI, 0}
+		return arg{REG_ARG, RI, 0}, true
 	case 0x07:
-		st.argA = arg{REG_ARG, RJ, 0}
+		return arg{REG_ARG, RJ, 0}, true
 
 	// [register]
 	case 0x08:
-		st.argA = arg{REG_ADDR_ARG, RA, 0}
+		return arg{REG_ADDR_ARG, RA, 0}, true
 	case 0x09:
-		st.argA = arg{REG_ADDR_ARG, RB, 0}
+		return arg{REG_ADDR_ARG, RB, 0}, true
 	case 0x0A:
-		st.argA = arg{REG_ADDR_ARG, RC, 0}
+		return arg{REG_ADDR_ARG, RC, 0}, true
 	case 0x0B:
-		st.argA = arg{REG_ADDR_ARG, RX, 0}
+		return arg{REG_ADDR_ARG, RX, 0}, true
 	case 0x0C:
-		st.argA = arg{REG_ADDR_ARG, RY, 0}
+		return arg{REG_ADDR_ARG, RY, 0}, true
 	case 0x0D:
-		st.argA = arg{REG_ADDR_ARG, RZ, 0}
+		return arg{REG_ADDR_ARG, RZ, 0}, true
 	case 0x0E:
-		st.argA = arg{REG_ADDR_ARG, RI, 0}
+		return arg{REG_ADDR_ARG, RI, 0}, true
 	case 0x0F:
-		st.argA = arg{REG_ADDR_ARG, RJ, 0}
+		return arg{REG_ADDR_ARG, RJ, 0}, true
 
 	// [register+word]
 	case 0x10:
-		st.argA = arg{REG_ADDR_WORD_ARG, RA, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, RA, st.eatWord()}, true
 	case 0x11:
-		st.argA = arg{REG_ADDR_WORD_ARG, RB, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, RB, st.eatWord()}, true
 	case 0x12:
-		st.argA = arg{REG_ADDR_WORD_ARG, RC, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, RC, st.eatWord()}, true
 	case 0x13:
-		st.argA = arg{REG_ADDR_WORD_ARG, RX, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, RX, st.eatWord()}, true
 	case 0x14:
-		st.argA = arg{REG_ADDR_WORD_ARG, RY, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, RY, st.eatWord()}, true
 	case 0x15:
-		st.argA = arg{REG_ADDR_WORD_ARG, RZ, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, RZ, st.eatWord()}, true
 	case 0x16:
-		st.argA = arg{REG_ADDR_WORD_ARG, RI, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, RI, st.eatWord()}, true
 	case 0x17:
-		st.argA = arg{REG_ADDR_WORD_ARG, RJ, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, RJ, st.eatWord()}, true
 
-	case 0x18:
-		st.argA = arg{POP_ARG, 0, 0}
+	// Other
 	case 0x19:
-		st.argA = arg{REG_ADDR_ARG, SP, 0}
+		return arg{REG_ADDR_ARG, SP, 0}, true
 	case 0x1A:
-		st.argA = arg{REG_ADDR_WORD_ARG, SP, st.eatWord()}
+		return arg{REG_ADDR_WORD_ARG, SP, st.eatWord()}, true
 	case 0x1B:
-		st.argA = arg{REG_ARG, SP, 0}
+		return arg{REG_ARG, SP, 0}, true
 	case 0x1C:
-		st.argA = arg{REG_ARG, PC, 0}
+		return arg{REG_ARG, PC, 0}, true
 	case 0x1D:
-		st.argA = arg{REG_ARG, EX, 0}
+		return arg{REG_ARG, EX, 0}, true
 	case 0x1E:
-		st.argA = arg{ADDR_WORD_ARG, st.eatWord(), 0}
+		return arg{ADDR_WORD_ARG, st.eatWord(), 0}, true
 	case 0x1F:
-		st.argA = arg{WORD_ARG, st.eatWord(), 0}
-
-	default:
-		if st.a >= 0x20 && st.a <= 0x3f {
-			st.argA = arg{LITERAL_ARG, st.a - 0x20 - 1, 0}
-		} else {
-			return emu.DecodeFailed
-		}
+		return arg{WORD_ARG, st.eatWord(), 0}, true
 	}
-	return emu.OK
+
+	// Not handled
+	return
 }
 
-func (st *state) fetchB() emu.Code {
-	return emu.NotImplemented
+func (st *state) fetchA() (code emu.Code) {
+	if arg, ok := st.fetchCommonArg(st.a); ok {
+		st.argA = arg
+		return
+	}
+	if st.a == 0x18 {
+		st.argA = arg{POP_ARG, 0, 0}
+		return
+	}
+	if st.a >= 0x20 && st.a <= 0x3F {
+		st.argA = arg{LITERAL_ARG, st.a - 0x20 - 1, 0}
+		return
+	}
+	return emu.DecodeFailed
+}
+
+func (st *state) fetchB() (code emu.Code) {
+	if arg, ok := st.fetchCommonArg(st.b); ok {
+		st.argB = arg
+		return
+	}
+	if st.b == 0x18 {
+		st.argB = arg{PUSH_ARG, 0, 0}
+		return
+	}
+	return emu.DecodeFailed
 }
 
 func (st *state) fetch() (code emu.Code) {

@@ -65,8 +65,8 @@ type addrMode int
 
 type arg struct {
 	mode addrMode
-	val  int
-	val2 int
+	val  uint16
+	val2 uint16
 }
 
 type Emulator struct {
@@ -86,6 +86,10 @@ func (m memory) At(ind uint16) uint16 {
 
 type regState []uint64
 
+func (r regState) Reg(ind int) uint16 {
+	return uint16(r[ind])
+}
+
 func (r regState) PC() uint16 {
 	return uint16(r[PC])
 }
@@ -94,32 +98,49 @@ func (r regState) SetPC(val uint16) {
 	r[PC] = uint64(val)
 }
 
+func (r regState) SP() uint16 {
+	return uint16(r[SP])
+}
+
+func (r regState) SetSP(val uint16) {
+	r[SP] = uint64(val)
+}
+
 type state struct {
 	mem memory
 	reg regState
 
 	opcode int
-	a      int
-	b      int
+	a      uint16
+	b      uint16
 
 	argA arg
 	argB arg
+
+	valA uint16
+	valB uint16
 }
 
-func (st *state) fetchSpecial(v int) emu.Code {
+func (st *state) fetchSpecial(v uint16) emu.Code {
 	return emu.NotImplemented
 }
 
-func (st *state) eatWord() int {
-	v := int(st.mem.At(st.reg.PC()))
+func (st *state) eatWord() uint16 {
+	v := st.mem.At(st.reg.PC())
 	st.reg.SetPC(st.reg.PC() + 1)
+	return v
+}
+
+func (st *state) pop() uint16 {
+	v := st.mem.At(st.reg.SP())
+	st.reg.SetSP(st.reg.SP() + 1)
 	return v
 }
 
 func (st *state) fetchFirst() (c emu.Code) {
 	v := st.eatWord()
-	st.opcode = v & 0x1F
-	fmt.Printf("opcode: %x\n", st.opcode)
+	st.opcode = int(v & 0x1F)
+	fmt.Printf("opcode: 0x%x\n", st.opcode)
 	switch st.opcode {
 	case SPECIAL_OP:
 		return st.fetchSpecial(v)
@@ -155,12 +176,12 @@ func (st *state) fetchFirst() (c emu.Code) {
 	}
 	st.a = (v >> 10) & 0x3F
 	st.b = (v >> 5) & 0x1F
-	fmt.Printf("a: %x, b: %x\n", st.a, st.b)
+	fmt.Printf("a: 0x%x, b: 0x%x\n", st.a, st.b)
 
 	return emu.OK
 }
 
-func (st *state) fetchCommonArg(v int) (ar arg, ok bool) {
+func (st *state) fetchCommonArg(v uint16) (ar arg, ok bool) {
 	switch v {
 	// register
 	case 0x00:
@@ -278,11 +299,45 @@ func (st *state) fetch() (code emu.Code) {
 	return emu.OK
 }
 
+func (st *state) loadVal(ar arg) uint16 {
+	switch ar.mode {
+	case REG_ARG:
+		return st.reg.Reg(int(ar.val))
+	case REG_ADDR_ARG:
+		return st.mem.At(st.reg.Reg(int(ar.val)))
+	case REG_ADDR_WORD_ARG:
+		return st.mem.At(st.reg.Reg(int(ar.val)) + ar.val2)
+	case POP_ARG:
+		return st.pop()
+	case PUSH_ARG:
+		// Nothing to load
+		return 0
+	case ADDR_WORD_ARG:
+		return st.mem.At(ar.val)
+	case WORD_ARG:
+		return ar.val
+	case LITERAL_ARG:
+		return ar.val
+	}
+	panic("not reachable")
+}
+
+func (st *state) load() (code emu.Code) {
+	st.valA = st.loadVal(st.argA)
+	fmt.Printf("st.valA = 0x%x\n", st.valA)
+	st.valB = st.loadVal(st.argB)
+	fmt.Printf("st.valB = 0x%x\n", st.valB)
+	return emu.OK
+}
+
 func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if len(st.reg) < RegCount {
 		return nil, emu.RegStateTooSmall
 	}
 	if c = st.fetch(); c != emu.OK {
+		return
+	}
+	if c = st.load(); c != emu.OK {
 		return
 	}
 	fmt.Printf("lala\n")

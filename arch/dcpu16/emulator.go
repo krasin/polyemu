@@ -337,7 +337,9 @@ func (st *state) exec() (code emu.Code) {
 	case SET_OP:
 		st.res = st.valA
 	case ADD_OP:
-		st.res = st.valA + st.valB
+		st.res = st.valB + st.valA
+	case SUB_OP:
+		st.res = st.valB - st.valA
 	default:
 		return emu.NotImplemented
 	}

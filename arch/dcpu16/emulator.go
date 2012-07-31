@@ -85,7 +85,7 @@ func (st *state) fetchSpecial(v int) emu.Code {
 	return emu.NotImplemented
 }
 
-func (st *state) Fetch() (c emu.Code) {
+func (st *state) fetchFirst() (c emu.Code) {
 	v := int(st.mem.At(st.reg.PC()))
 	st.opcode = v & 0x1F
 	fmt.Printf("opcode: %x\n", st.opcode)
@@ -129,11 +129,32 @@ func (st *state) Fetch() (c emu.Code) {
 	return emu.OK
 }
 
+func (st *state) fetchA() emu.Code {
+	return emu.NotImplemented
+}
+
+func (st *state) fetchB() emu.Code {
+	return emu.NotImplemented
+}
+
+func (st *state) fetch() (code emu.Code) {
+	if code = st.fetchFirst(); code != emu.OK {
+		return
+	}
+	if code = st.fetchA(); code != emu.OK {
+		return
+	}
+	if code = st.fetchB(); code != emu.OK {
+		return
+	}
+	return emu.OK
+}
+
 func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if len(st.reg) < RegCount {
 		return nil, emu.RegStateTooSmall
 	}
-	if c = st.Fetch(); c != emu.OK {
+	if c = st.fetch(); c != emu.OK {
 		return
 	}
 	fmt.Printf("lala\n")

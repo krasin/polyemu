@@ -32,6 +32,8 @@ func (c Code) String() string {
 		return "Interrupt"
 	case NotImplemented:
 		return "NotImplemented"
+	case DecodeFailed:
+		return "DecodeFailed"
 	}
 	return fmt.Sprintf("Code:%d", int(c))
 }
@@ -43,4 +45,5 @@ const (
 	InvalidOpcode         = 3
 	Interrupt             = 4
 	NotImplemented        = 5
+	DecodeFailed          = 6
 )

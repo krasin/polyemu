@@ -7,7 +7,17 @@ import (
 )
 
 const (
+	RA       = iota
+	RB       = iota
+	RC       = iota
+	RX       = iota
+	RY       = iota
+	RZ       = iota
+	RI       = iota
+	RJ       = iota
 	PC       = iota
+	SP       = iota
+	EX       = iota
 	RegCount = iota
 )
 
@@ -51,6 +61,14 @@ const (
 	LITERAL_ARG       = 8 // literal (-1..30)
 )
 
+type addrMode int
+
+type arg struct {
+	mode addrMode
+	val  int
+	val2 int
+}
+
 type Emulator struct {
 }
 
@@ -72,6 +90,10 @@ func (r regState) PC() uint16 {
 	return uint16(r[PC])
 }
 
+func (r regState) SetPC(val uint16) {
+	r[PC] = uint64(val)
+}
+
 type state struct {
 	mem memory
 	reg regState
@@ -79,14 +101,23 @@ type state struct {
 	opcode int
 	a      int
 	b      int
+
+	argA arg
+	argB arg
 }
 
 func (st *state) fetchSpecial(v int) emu.Code {
 	return emu.NotImplemented
 }
 
-func (st *state) fetchFirst() (c emu.Code) {
+func (st *state) eatWord() int {
 	v := int(st.mem.At(st.reg.PC()))
+	st.reg.SetPC(st.reg.PC() + 1)
+	return v
+}
+
+func (st *state) fetchFirst() (c emu.Code) {
+	v := st.eatWord()
 	st.opcode = v & 0x1F
 	fmt.Printf("opcode: %x\n", st.opcode)
 	switch st.opcode {
@@ -130,7 +161,86 @@ func (st *state) fetchFirst() (c emu.Code) {
 }
 
 func (st *state) fetchA() emu.Code {
-	return emu.NotImplemented
+	switch st.a {
+	// register
+	case 0x00:
+		st.argA = arg{REG_ARG, RA, 0}
+	case 0x01:
+		st.argA = arg{REG_ARG, RB, 0}
+	case 0x02:
+		st.argA = arg{REG_ARG, RC, 0}
+	case 0x03:
+		st.argA = arg{REG_ARG, RX, 0}
+	case 0x04:
+		st.argA = arg{REG_ARG, RY, 0}
+	case 0x05:
+		st.argA = arg{REG_ARG, RZ, 0}
+	case 0x06:
+		st.argA = arg{REG_ARG, RI, 0}
+	case 0x07:
+		st.argA = arg{REG_ARG, RJ, 0}
+
+	// [register]
+	case 0x08:
+		st.argA = arg{REG_ADDR_ARG, RA, 0}
+	case 0x09:
+		st.argA = arg{REG_ADDR_ARG, RB, 0}
+	case 0x0A:
+		st.argA = arg{REG_ADDR_ARG, RC, 0}
+	case 0x0B:
+		st.argA = arg{REG_ADDR_ARG, RX, 0}
+	case 0x0C:
+		st.argA = arg{REG_ADDR_ARG, RY, 0}
+	case 0x0D:
+		st.argA = arg{REG_ADDR_ARG, RZ, 0}
+	case 0x0E:
+		st.argA = arg{REG_ADDR_ARG, RI, 0}
+	case 0x0F:
+		st.argA = arg{REG_ADDR_ARG, RJ, 0}
+
+	// [register+word]
+	case 0x10:
+		st.argA = arg{REG_ADDR_WORD_ARG, RA, st.eatWord()}
+	case 0x11:
+		st.argA = arg{REG_ADDR_WORD_ARG, RB, st.eatWord()}
+	case 0x12:
+		st.argA = arg{REG_ADDR_WORD_ARG, RC, st.eatWord()}
+	case 0x13:
+		st.argA = arg{REG_ADDR_WORD_ARG, RX, st.eatWord()}
+	case 0x14:
+		st.argA = arg{REG_ADDR_WORD_ARG, RY, st.eatWord()}
+	case 0x15:
+		st.argA = arg{REG_ADDR_WORD_ARG, RZ, st.eatWord()}
+	case 0x16:
+		st.argA = arg{REG_ADDR_WORD_ARG, RI, st.eatWord()}
+	case 0x17:
+		st.argA = arg{REG_ADDR_WORD_ARG, RJ, st.eatWord()}
+
+	case 0x18:
+		st.argA = arg{POP_ARG, 0, 0}
+	case 0x19:
+		st.argA = arg{REG_ADDR_ARG, SP, 0}
+	case 0x1A:
+		st.argA = arg{REG_ADDR_WORD_ARG, SP, st.eatWord()}
+	case 0x1B:
+		st.argA = arg{REG_ARG, SP, 0}
+	case 0x1C:
+		st.argA = arg{REG_ARG, PC, 0}
+	case 0x1D:
+		st.argA = arg{REG_ARG, EX, 0}
+	case 0x1E:
+		st.argA = arg{ADDR_WORD_ARG, st.eatWord(), 0}
+	case 0x1F:
+		st.argA = arg{WORD_ARG, st.eatWord(), 0}
+
+	default:
+		if st.a >= 0x20 && st.a <= 0x3f {
+			st.argA = arg{LITERAL_ARG, st.a - 0x20 - 1, 0}
+		} else {
+			return emu.DecodeFailed
+		}
+	}
+	return emu.OK
 }
 
 func (st *state) fetchB() emu.Code {

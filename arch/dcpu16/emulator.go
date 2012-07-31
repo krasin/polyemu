@@ -106,6 +106,14 @@ func (r regState) SetSP(val uint16) {
 	r[SP] = uint64(val)
 }
 
+func (r regState) EX() uint16 {
+	return uint16(r[EX])
+}
+
+func (r regState) SetEX(val uint16) {
+	r[EX] = uint64(val)
+}
+
 type state struct {
 	mem memory
 	reg regState
@@ -338,6 +346,7 @@ func (st *state) exec() (code emu.Code) {
 		st.res = st.valA
 	case ADD_OP:
 		st.res = st.valB + st.valA
+		st.reg.SetEX(uint16((int(st.valB) + int(st.valA)) >> 16))
 	case SUB_OP:
 		st.res = st.valB - st.valA
 	default:

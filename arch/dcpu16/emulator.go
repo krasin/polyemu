@@ -119,6 +119,8 @@ type state struct {
 
 	valA uint16
 	valB uint16
+
+	res uint16
 }
 
 func (st *state) fetchSpecial(v uint16) emu.Code {
@@ -330,6 +332,17 @@ func (st *state) load() (code emu.Code) {
 	return emu.OK
 }
 
+func (st *state) exec() (code emu.Code) {
+	switch st.opcode {
+	case SET_OP:
+		st.res = st.valA
+	default:
+		return emu.NotImplemented
+	}
+	fmt.Printf("st.res: %x\n", st.res)
+	return
+}
+
 func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if len(st.reg) < RegCount {
 		return nil, emu.RegStateTooSmall
@@ -338,6 +351,9 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 		return
 	}
 	if c = st.load(); c != emu.OK {
+		return
+	}
+	if c = st.exec(); c != emu.OK {
 		return
 	}
 	fmt.Printf("lala\n")

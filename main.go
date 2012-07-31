@@ -15,7 +15,7 @@ func main() {
 	}
 	// SET X, 1
 	st.Mem[0] = 0x61
-	st.Mem[1] = 0x84
+	st.Mem[1] = 0x88
 	if _, code := e.Step(st); code != emu.OK {
 		fmt.Printf("code = %v\n", code)
 	}

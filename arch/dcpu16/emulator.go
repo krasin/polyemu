@@ -105,6 +105,13 @@ func (r regState) Set(ind int, val uint16) {
 	r[ind] = uint64(val)
 }
 
+func (r regState) Dec(ind int) uint16 {
+	v := uint16(r[ind])
+	v--
+	r[ind] = uint64(v)
+	return v
+}
+
 func (r regState) PC() uint16 {
 	return uint16(r[PC])
 }
@@ -388,6 +395,11 @@ func (st *state) storeVal(ar arg) emu.Code {
 		return st.mem.Set(st.reg.Get(int(ar.val)), st.res)
 	case REG_ADDR_WORD_ARG:
 		return st.mem.Set(st.reg.Get(int(ar.val))+ar.val2, st.res)
+	case POP_ARG:
+		panic("not reachable")
+	case PUSH_ARG:
+		st.reg.Dec(SP)
+		return st.mem.Set(st.reg.Get(SP), st.res)
 	default:
 		return emu.NotImplemented
 	}

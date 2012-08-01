@@ -13,9 +13,9 @@ func main() {
 		Mem: make([]byte, 128*1024),
 		Reg: make([]uint64, 32),
 	}
-	// SET X, 1
+	// SET X, 2
 	st.Mem[0] = 0x61
-	st.Mem[1] = 0x88
+	st.Mem[1] = 0x8c
 
 	// MUL X, X
 	st.Mem[2] = 0x64
@@ -49,7 +49,11 @@ func main() {
 	st.Mem[18] = 0x64
 	st.Mem[19] = 0x00
 
-	for i := 0; i < 8; i++ {
+	// MLI X, -1
+	st.Mem[20] = 0x65
+	st.Mem[21] = 0x80
+
+	for i := 0; i < 9; i++ {
 		fmt.Printf("Step %d\n", i)
 		if _, code := e.Step(st); code != emu.OK {
 			fmt.Printf("code = %v\n", code)

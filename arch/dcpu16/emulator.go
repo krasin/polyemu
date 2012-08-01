@@ -430,7 +430,6 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if c = st.store(); c != emu.OK {
 		return
 	}
-	fmt.Printf("lala\n")
 	return
 }
 

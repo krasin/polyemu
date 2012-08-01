@@ -54,5 +54,6 @@ func main() {
 		if _, code := e.Step(st); code != emu.OK {
 			fmt.Printf("code = %v\n", code)
 		}
+		fmt.Printf("\n")
 	}
 }

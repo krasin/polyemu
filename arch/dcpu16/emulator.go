@@ -400,6 +400,8 @@ func (st *state) storeVal(ar arg) emu.Code {
 	case PUSH_ARG:
 		st.reg.Dec(SP)
 		return st.mem.Set(st.reg.Get(SP), st.res)
+	case ADDR_WORD_ARG:
+		return st.mem.Set(ar.val, st.res)
 	default:
 		return emu.NotImplemented
 	}

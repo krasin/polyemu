@@ -75,6 +75,7 @@ type Emulator struct {
 type memory []byte
 
 func (m memory) At(ind uint16) uint16 {
+	fmt.Printf("memory.At(%d)\n", ind)
 	if 2*int(ind) >= len(m) {
 		return 0
 	}
@@ -85,6 +86,7 @@ func (m memory) At(ind uint16) uint16 {
 }
 
 func (m memory) Set(ind uint16, val uint16) emu.Code {
+	fmt.Printf("memory.Set(%d, %d)\n", ind, val)
 	if 2*int(ind)+1 >= len(m) {
 		return emu.MemoryAccessViolation
 	}
@@ -383,7 +385,7 @@ func (st *state) storeVal(ar arg) emu.Code {
 	case REG_ARG:
 		st.reg.Set(int(ar.val), st.res)
 	case REG_ADDR_ARG:
-		return st.mem.Set(st.valB, st.res)
+		return st.mem.Set(st.reg.Get(int(st.argB.val)), st.res)
 	default:
 		return emu.NotImplemented
 	}

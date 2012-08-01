@@ -75,13 +75,22 @@ type Emulator struct {
 type memory []byte
 
 func (m memory) At(ind uint16) uint16 {
-	if int(2*ind) >= len(m) {
+	if 2*int(ind) >= len(m) {
 		return 0
 	}
-	if int(2*ind) == len(m)-1 {
-		return uint16(m[2*ind])
+	if 2*int(ind) == len(m)-1 {
+		return uint16(m[2*int(ind)])
 	}
-	return uint16(m[2*ind]) + (uint16(m[2*ind+1]) << 8)
+	return uint16(m[2*int(ind)]) + (uint16(m[2*int(ind)+1]) << 8)
+}
+
+func (m memory) Set(ind uint16, val uint16) emu.Code {
+	if 2*int(ind)+1 >= len(m) {
+		return emu.MemoryAccessViolation
+	}
+	m[2*int(ind)] = byte(val & 0xFF)
+	m[2*int(ind)+1] = byte((val >> 8) & 0xFF)
+	return emu.OK
 }
 
 type regState []uint64
@@ -373,6 +382,8 @@ func (st *state) storeVal(ar arg) emu.Code {
 	switch ar.mode {
 	case REG_ARG:
 		st.reg.Set(int(ar.val), st.res)
+	case REG_ADDR_ARG:
+		return st.mem.Set(st.valB, st.res)
 	default:
 		return emu.NotImplemented
 	}

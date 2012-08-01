@@ -86,8 +86,12 @@ func (m memory) At(ind uint16) uint16 {
 
 type regState []uint64
 
-func (r regState) Reg(ind int) uint16 {
+func (r regState) Get(ind int) uint16 {
 	return uint16(r[ind])
+}
+
+func (r regState) Set(ind int, val uint16) {
+	r[ind] = uint64(val)
 }
 
 func (r regState) PC() uint16 {
@@ -306,17 +310,18 @@ func (st *state) fetch() (code emu.Code) {
 	if code = st.fetchB(); code != emu.OK {
 		return
 	}
+	fmt.Printf("st.argA: %+v, st.argB: %+v\n", st.argA, st.argB)
 	return emu.OK
 }
 
 func (st *state) loadVal(ar arg) uint16 {
 	switch ar.mode {
 	case REG_ARG:
-		return st.reg.Reg(int(ar.val))
+		return st.reg.Get(int(ar.val))
 	case REG_ADDR_ARG:
-		return st.mem.At(st.reg.Reg(int(ar.val)))
+		return st.mem.At(st.reg.Get(int(ar.val)))
 	case REG_ADDR_WORD_ARG:
-		return st.mem.At(st.reg.Reg(int(ar.val)) + ar.val2)
+		return st.mem.At(st.reg.Get(int(ar.val)) + ar.val2)
 	case POP_ARG:
 		return st.pop()
 	case PUSH_ARG:
@@ -364,6 +369,20 @@ func (st *state) exec() (code emu.Code) {
 	return
 }
 
+func (st *state) storeVal(ar arg) emu.Code {
+	switch ar.mode {
+	case REG_ARG:
+		st.reg.Set(int(ar.val), st.res)
+	default:
+		return emu.NotImplemented
+	}
+	return emu.OK
+}
+
+func (st *state) store() emu.Code {
+	return st.storeVal(st.argB)
+}
+
 func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if len(st.reg) < RegCount {
 		return nil, emu.RegStateTooSmall
@@ -375,6 +394,9 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 		return
 	}
 	if c = st.exec(); c != emu.OK {
+		return
+	}
+	if c = st.store(); c != emu.OK {
 		return
 	}
 	fmt.Printf("lala\n")

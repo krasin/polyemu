@@ -16,7 +16,15 @@ func main() {
 	// SET X, 1
 	st.Mem[0] = 0x61
 	st.Mem[1] = 0x88
-	if _, code := e.Step(st); code != emu.OK {
-		fmt.Printf("code = %v\n", code)
+
+	// MUL X, X
+	st.Mem[2] = 0x64
+	st.Mem[3] = 0x0c
+
+	for i := 0; i < 2; i++ {
+		fmt.Printf("Step %d\n", i)
+		if _, code := e.Step(st); code != emu.OK {
+			fmt.Printf("code = %v\n", code)
+		}
 	}
 }

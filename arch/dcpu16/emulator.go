@@ -354,6 +354,9 @@ func (st *state) exec() (code emu.Code) {
 		} else {
 			st.reg.SetEX(0)
 		}
+	case MUL_OP:
+		st.res = st.valB * st.valA
+		st.reg.SetEX(uint16(((uint64(st.valB) * uint64(st.valA)) >> 16) & 0xFFFF))
 	default:
 		return emu.NotImplemented
 	}

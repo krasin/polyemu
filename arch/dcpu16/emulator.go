@@ -349,6 +349,11 @@ func (st *state) exec() (code emu.Code) {
 		st.reg.SetEX(uint16((int(st.valB) + int(st.valA)) >> 16))
 	case SUB_OP:
 		st.res = st.valB - st.valA
+		if st.valB < st.valA {
+			st.reg.SetEX(0xFFFF)
+		} else {
+			st.reg.SetEX(0)
+		}
 	default:
 		return emu.NotImplemented
 	}

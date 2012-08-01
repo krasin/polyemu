@@ -33,7 +33,13 @@ func main() {
 	st.Mem[8] = 0xa1
 	st.Mem[9] = 0x30
 
-	for i := 0; i < 5; i++ {
+	// SET [Y+1], 5
+	st.Mem[10] = 0x81
+	st.Mem[11] = 0x9a
+	st.Mem[12] = 0x01
+	st.Mem[13] = 0x00
+
+	for i := 0; i < 6; i++ {
 		fmt.Printf("Step %d\n", i)
 		if _, code := e.Step(st); code != emu.OK {
 			fmt.Printf("code = %v\n", code)

@@ -385,7 +385,9 @@ func (st *state) storeVal(ar arg) emu.Code {
 	case REG_ARG:
 		st.reg.Set(int(ar.val), st.res)
 	case REG_ADDR_ARG:
-		return st.mem.Set(st.reg.Get(int(st.argB.val)), st.res)
+		return st.mem.Set(st.reg.Get(int(ar.val)), st.res)
+	case REG_ADDR_WORD_ARG:
+		return st.mem.Set(st.reg.Get(int(ar.val))+ar.val2, st.res)
 	default:
 		return emu.NotImplemented
 	}

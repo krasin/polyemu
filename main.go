@@ -53,7 +53,11 @@ func main() {
 	st.Mem[20] = 0x65
 	st.Mem[21] = 0x80
 
-	for i := 0; i < 9; i++ {
+	// DIV X, 3
+	st.Mem[22] = 0x66
+	st.Mem[23] = 0x90
+
+	for i := 0; i < 10; i++ {
 		fmt.Printf("Step %d\n", i)
 		if _, code := e.Step(st); code != emu.OK {
 			fmt.Printf("code = %v\n", code)

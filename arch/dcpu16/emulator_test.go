@@ -66,6 +66,15 @@ var tests = []emu.Test{
 	{
 		Mem: []byte{
 			0x61, 0xa8, // SET X, 9
+			0xa1, 0x8b, // SET EX, 1
+			0x66, 0x84, // DIV X, 0
+		},
+		WantReg: []uint64{PC: 3},
+		N:       3,
+	},
+	{
+		Mem: []byte{
+			0x61, 0xa8, // SET X, 9
 			0x67, 0x7c, 0xfd, 0xff, // DVI X, -3
 		},
 		WantReg: []uint64{RX: 0xFFFD, PC: 3},
@@ -221,7 +230,7 @@ var tests = []emu.Test{
 			0x61, 0x7c, 0x52, 0x03, // SET X, 850
 			0x68, 0x84, // MOD X, 0
 		},
-		WantReg: []uint64{RX: 0, PC: 3},
+		WantReg: []uint64{PC: 3},
 		N:       2,
 	},
 }

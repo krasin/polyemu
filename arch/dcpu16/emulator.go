@@ -411,6 +411,8 @@ func (st *state) exec() (code emu.Code) {
 		} else {
 			st.res = uint16(int16(st.valB) % int16(st.valA))
 		}
+	case AND_OP:
+		st.res = st.valB & st.valA
 
 	default:
 		return emu.NotImplemented

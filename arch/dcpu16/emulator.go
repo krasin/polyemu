@@ -399,6 +399,12 @@ func (st *state) exec() (code emu.Code) {
 			st.res = uint16(int16(st.valB) / int16(st.valA))
 			st.reg.SetEX(uint16(((int64(int16(st.valB)) << 16) / int64(int16(st.valA))) & 0xFFFF))
 		}
+	case MOD_OP:
+		if st.valA == 0 {
+			st.res = 0
+		} else {
+			st.res = st.valB % st.valA
+		}
 
 	default:
 		return emu.NotImplemented

@@ -39,12 +39,20 @@ var tests = []emu.Test{
 		WantReg: []uint64{RA: 5, RB: 7, PC: 5},
 		N:       3,
 	},
+	{
+		Mem: []byte{
+			0x01, 0xaf, // SET PUSH, 10
+			0x61, 0x78, 0xFF, 0xFF, // SET X, [0xFFFF]
+		},
+		WantReg: []uint64{RX: 10, SP: 0xFFFF, PC: 3},
+		N:       2,
+	},
 }
 
 func TestSet(t *testing.T) {
 	for _, tt := range tests {
 		tt.Reg = make([]uint64, RegCount)
-		tt.Mem = append(tt.Mem, make([]byte, 65536)...)
+		tt.Mem = append(tt.Mem, make([]byte, 2*65536)...)
 		e := new(Emulator)
 		emu.RunTest(t, e, tt)
 	}

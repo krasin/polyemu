@@ -144,18 +144,20 @@ var tests = []emu.Test{
 	{
 		Mem: []byte{
 			0x61, 0x98, // SET X, 5
+			0xa1, 0x8b, // SET EX, 1
 			0x63, 0x98, // SUB X, 5
 		},
-		WantReg: []uint64{PC: 2},
-		N:       2,
+		WantReg: []uint64{PC: 3},
+		N:       3,
 	},
 	{
 		Mem: []byte{
 			0x61, 0x98, // SET X, 5
+			0xa1, 0x8b, // SET EX, 1
 			0x64, 0x0c, // MUL X, X
 		},
-		WantReg: []uint64{RX: 25, PC: 2},
-		N:       2,
+		WantReg: []uint64{RX: 25, PC: 3},
+		N:       3,
 	},
 	{
 		Mem: []byte{

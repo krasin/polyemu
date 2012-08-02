@@ -109,6 +109,14 @@ var tests = []emu.Test{
 		WantReg: []uint64{PC: 2, EX: 1},
 		N:       1,
 	},
+	{
+		Mem: []byte{
+			0x61, 0x90, // SET X, 3
+			0x62, 0x94, // ADD X, 4
+		},
+		WantReg: []uint64{RX: 7, PC: 2},
+		N:       2,
+	},
 }
 
 func TestSet(t *testing.T) {

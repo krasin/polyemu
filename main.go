@@ -57,7 +57,11 @@ func main() {
 	st.Mem[22] = 0x66
 	st.Mem[23] = 0x90
 
-	for i := 0; i < 10; i++ {
+	// DVI X, -1
+	st.Mem[24] = 0x67
+	st.Mem[25] = 0x80
+
+	for i := 0; i < 11; i++ {
 		fmt.Printf("Step %d\n", i)
 		if _, code := e.Step(st); code != emu.OK {
 			fmt.Printf("code = %v\n", code)

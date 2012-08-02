@@ -405,6 +405,12 @@ func (st *state) exec() (code emu.Code) {
 		} else {
 			st.res = st.valB % st.valA
 		}
+	case MDI_OP:
+		if st.valA == 0 {
+			st.res = 0
+		} else {
+			st.res = uint16(int16(st.valB) % int16(st.valA))
+		}
 
 	default:
 		return emu.NotImplemented

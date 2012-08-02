@@ -236,8 +236,48 @@ var tests = []emu.Test{
 	},
 	{
 		Mem: []byte{
+			0x61, 0x80, // SET X, 65535
+			0x68, 0x98, // MOD X, 5
+		},
+		WantReg: []uint64{PC: 2},
+		N:       2,
+	},
+	{
+		Mem: []byte{
 			0x61, 0x7c, 0x52, 0x03, // SET X, 850
 			0x68, 0x84, // MOD X, 0
+		},
+		WantReg: []uint64{PC: 3},
+		N:       2,
+	},
+	{
+		Mem: []byte{
+			0x61, 0x7c, 0x52, 0x03, // SET X, 850
+			0x69, 0xb8, // MDI X, 13
+		},
+		WantReg: []uint64{RX: 5, PC: 3},
+		N:       2,
+	},
+	{
+		Mem: []byte{
+			0x61, 0x7c, 0xf9, 0xff, // SET X, -7
+			0x69, 0xc4, // MDI X, 16
+		},
+		WantReg: []uint64{RX: 0xFFF9, PC: 3},
+		N:       2,
+	},
+	{
+		Mem: []byte{
+			0x61, 0x80, // SET X, 65535
+			0x69, 0x98, // MDI X, 5
+		},
+		WantReg: []uint64{RX: 0xFFFF, PC: 2},
+		N:       2,
+	},
+	{
+		Mem: []byte{
+			0x61, 0x7c, 0x52, 0x03, // SET X, 850
+			0x69, 0x84, // MDI X, 0
 		},
 		WantReg: []uint64{PC: 3},
 		N:       2,

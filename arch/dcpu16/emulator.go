@@ -426,6 +426,14 @@ func (st *state) exec() (code emu.Code) {
 	case SHL_OP:
 		st.res = st.valB << st.valA
 		st.reg.SetEX(uint16(((uint64(st.valB) << st.valA) >> 16) & 0xFFFF))
+	case ADX_OP:
+		v := uint64(st.valB) + uint64(st.valA) + uint64(st.reg.EX())
+		st.res = uint16(v & 0xFFFF)
+		if v > 0xFFFF {
+			st.reg.SetEX(1)
+		} else {
+			st.reg.SetEX(0)
+		}
 
 	default:
 		return emu.NotImplemented

@@ -8,12 +8,12 @@ import (
 var tests = []emu.Test{
 	{
 		Mem:     []byte{0x61, 0x88}, // SET X, 1
-		WantReg: []uint64{RX: 1},
+		WantReg: []uint64{RX: 1, PC: 1},
 		N:       1,
 	},
 	{
 		Mem:     []byte{0x61, 0x8c, 0x64, 0x0c}, // SET X, 2 ; MUL X, X
-		WantReg: []uint64{RX: 4},
+		WantReg: []uint64{RX: 4, PC: 2},
 		N:       2,
 	},
 }

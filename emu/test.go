@@ -24,8 +24,11 @@ func RunTest(t T, e Emulator, test Test) {
 			return
 		}
 	}
-	for i, want := range test.WantReg {
-		got := st.Reg[i]
+	for i, got := range st.Reg {
+		var want uint64
+		if i < len(test.WantReg) {
+			want = test.WantReg[i]
+		}
 		if got != want {
 			t.Errorf("Reg[%d]: want 0x%x, got 0x%x\n", i, want, got)
 		}

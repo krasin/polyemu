@@ -415,6 +415,8 @@ func (st *state) exec() (code emu.Code) {
 		st.res = st.valB & st.valA
 	case BOR_OP:
 		st.res = st.valB | st.valA
+	case XOR_OP:
+		st.res = st.valB ^ st.valA
 
 	default:
 		return emu.NotImplemented

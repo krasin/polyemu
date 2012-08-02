@@ -396,7 +396,6 @@ func (st *state) exec() (code emu.Code) {
 			st.res = 0
 			st.reg.SetEX(0)
 		} else {
-			// TODO: add a test for rounding
 			st.res = uint16(int16(st.valB) / int16(st.valA))
 			st.reg.SetEX(uint16(((int64(int16(st.valB)) << 16) / int64(int16(st.valA))) & 0xFFFF))
 		}

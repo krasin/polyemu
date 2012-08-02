@@ -417,6 +417,9 @@ func (st *state) exec() (code emu.Code) {
 		st.res = st.valB | st.valA
 	case XOR_OP:
 		st.res = st.valB ^ st.valA
+	case SHR_OP:
+		st.res = st.valB >> st.valA
+		st.reg.SetEX(uint16(((uint64(st.valB) << 16) >> st.valA) & 0xFFFF))
 
 	default:
 		return emu.NotImplemented

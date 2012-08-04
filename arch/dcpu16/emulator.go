@@ -480,6 +480,12 @@ func (st *state) exec() (code emu.Code) {
 			// Ignore next instruction
 			st.reg.Set(SKIP_FLAG, 1)
 		}
+	case IFL_OP:
+		st.skipStore = true
+		if !(st.valB < st.valA) {
+			// Ignore next instruction
+			st.reg.Set(SKIP_FLAG, 1)
+		}
 	case STI_OP:
 		st.res = st.valA
 		st.postEffect = INC_IJ_POST

@@ -579,13 +579,53 @@ var tests = []emu.Test{
 		WantReg: []uint64{RA: 0xFFFF, RY: 2, PC: 4},
 		N:       4,
 	},
+	// IFL
+	{
+		Mem: []byte{
+			0x16, 0x04, // IFL A, B
+			0x61, 0x88, // SET X, 1
+			0x81, 0x8c, // SET Y, 2
+		},
+		WantReg: []uint64{RY: 2, PC: 3},
+		N:       3,
+	},
+	{
+		Mem: []byte{
+			0x01, 0x88, // SET A, 1
+			0x16, 0x04, // IFL A, B
+			0x61, 0x88, // SET X, 1
+			0x81, 0x8c, // SET Y, 2
+		},
+		WantReg: []uint64{RA: 1, RY: 2, PC: 4},
+		N:       4,
+	},
+	{
+		Mem: []byte{
+			0x21, 0x88, // SET B, 1
+			0x16, 0x04, // IFL A, B
+			0x61, 0x88, // SET X, 1
+			0x81, 0x8c, // SET Y, 2
+		},
+		WantReg: []uint64{RB: 1, RX: 1, RY: 2, PC: 4},
+		N:       4,
+	},
+	{
+		Mem: []byte{
+			0x01, 0x80, // SET A, 0xFFFF
+			0x16, 0x04, // IFL A, B
+			0x61, 0x88, // SET X, 1
+			0x81, 0x8c, // SET Y, 2
+		},
+		WantReg: []uint64{RA: 0xFFFF, RY: 2, PC: 4},
+		N:       4,
+	},
 }
 
 func TestSet(t *testing.T) {
-	for _, tt := range tests {
+	for testInd, tt := range tests {
 		tt.Reg = make([]uint64, RegCount)
 		tt.Mem = append(tt.Mem, make([]byte, 2*65536)...)
 		e := new(Emulator)
-		emu.RunTest(t, e, tt)
+		emu.RunTest(testInd, t, e, tt)
 	}
 }

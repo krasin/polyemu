@@ -11,7 +11,7 @@ type Test struct {
 	N       int
 }
 
-func RunTest(t T, e Emulator, test Test) {
+func RunTest(testInd int, t T, e Emulator, test Test) {
 	st := &State{
 		Mem: make([]byte, len(test.Mem)),
 		Reg: make([]uint64, len(test.Reg)),
@@ -20,7 +20,7 @@ func RunTest(t T, e Emulator, test Test) {
 	copy(st.Reg, test.Reg)
 	for i := 0; i < test.N; i++ {
 		if _, code := e.Step(st); code != OK {
-			t.Errorf("Execution failed at step %d with the following code: %v\n", i, code)
+			t.Errorf("test #%d: Execution failed at step %d with the following code: %v\n", testInd, i, code)
 			return
 		}
 	}
@@ -30,7 +30,7 @@ func RunTest(t T, e Emulator, test Test) {
 			want = test.WantReg[i]
 		}
 		if got != want {
-			t.Errorf("Reg[%d]: want 0x%x, got 0x%x\n", i, want, got)
+			t.Errorf("test #%d: Reg[%d]: want 0x%x, got 0x%x\n", testInd, i, want, got)
 		}
 	}
 }

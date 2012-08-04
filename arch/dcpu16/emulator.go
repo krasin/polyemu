@@ -434,6 +434,14 @@ func (st *state) exec() (code emu.Code) {
 		} else {
 			st.reg.SetEX(0)
 		}
+	case SBX_OP:
+		v := int64(st.valB) - int64(st.valA) + int64(st.reg.EX())
+		st.res = uint16(uint64(v) & 0xFFFF)
+		if v < 0 {
+			st.reg.SetEX(0xFFFF)
+		} else {
+			st.reg.SetEX(0)
+		}
 
 	default:
 		return emu.NotImplemented

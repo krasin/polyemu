@@ -456,6 +456,12 @@ func (st *state) exec() (code emu.Code) {
 		} else {
 			st.reg.SetEX(0)
 		}
+	case IFB_OP:
+		st.skipStore = true
+		if !(st.valB&st.valA != 0) {
+			// Ignore next instruction
+			st.reg.Set(SKIP_FLAG, 1)
+		}
 	case IFE_OP:
 		st.skipStore = true
 		if !(st.valB == st.valA) {

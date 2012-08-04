@@ -62,6 +62,7 @@ const (
 
 	NOP_POST    = 0 // No post action
 	INC_IJ_POST = 1 // Increment I and J
+	DEC_IJ_POST = 2 // Decrement I and J
 )
 
 type addrMode int
@@ -456,6 +457,9 @@ func (st *state) exec() (code emu.Code) {
 	case STI_OP:
 		st.res = st.valA
 		st.postEffect = INC_IJ_POST
+	case STD_OP:
+		st.res = st.valA
+		st.postEffect = DEC_IJ_POST
 
 	default:
 		return emu.NotImplemented
@@ -497,6 +501,9 @@ func (st *state) post() emu.Code {
 	case INC_IJ_POST:
 		st.reg.Inc(RI)
 		st.reg.Inc(RJ)
+	case DEC_IJ_POST:
+		st.reg.Dec(RI)
+		st.reg.Dec(RJ)
 	default:
 		panic("Not reachable")
 	}

@@ -458,13 +458,19 @@ func (st *state) exec() (code emu.Code) {
 		}
 	case IFE_OP:
 		st.skipStore = true
-		if !(st.valA == st.valB) {
+		if !(st.valB == st.valA) {
 			// Ignore next instruction
 			st.reg.Set(SKIP_FLAG, 1)
 		}
 	case IFN_OP:
 		st.skipStore = true
-		if !(st.valA != st.valB) {
+		if !(st.valB != st.valA) {
+			// Ignore next instruction
+			st.reg.Set(SKIP_FLAG, 1)
+		}
+	case IFG_OP:
+		st.skipStore = true
+		if !(st.valB > st.valA) {
 			// Ignore next instruction
 			st.reg.Set(SKIP_FLAG, 1)
 		}

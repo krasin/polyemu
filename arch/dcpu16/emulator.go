@@ -59,6 +59,9 @@ const (
 	ADDR_WORD_ARG     = 6 // [next word]
 	WORD_ARG          = 7 // next word (literal)
 	LITERAL_ARG       = 8 // literal (-1..30)
+
+	NOP_POST    = 0 // No post action
+	INC_IJ_POST = 1 // Increment I and J
 )
 
 type addrMode int
@@ -112,6 +115,13 @@ func (r regState) Dec(ind int) uint16 {
 	return v
 }
 
+func (r regState) Inc(ind int) uint16 {
+	v := uint16(r[ind])
+	v++
+	r[ind] = uint64(v)
+	return v
+}
+
 func (r regState) PC() uint16 {
 	return uint16(r[PC])
 }
@@ -150,7 +160,8 @@ type state struct {
 	valA uint16
 	valB uint16
 
-	res uint16
+	res        uint16
+	postEffect int
 }
 
 func (st *state) fetchSpecial(v uint16) emu.Code {
@@ -442,6 +453,9 @@ func (st *state) exec() (code emu.Code) {
 		} else {
 			st.reg.SetEX(0)
 		}
+	case STI_OP:
+		st.res = st.valA
+		st.postEffect = INC_IJ_POST
 
 	default:
 		return emu.NotImplemented
@@ -477,6 +491,18 @@ func (st *state) store() emu.Code {
 	return st.storeVal(st.argB)
 }
 
+func (st *state) post() emu.Code {
+	switch st.postEffect {
+	case NOP_POST:
+	case INC_IJ_POST:
+		st.reg.Inc(RI)
+		st.reg.Inc(RJ)
+	default:
+		panic("Not reachable")
+	}
+	return emu.OK
+}
+
 func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if len(st.reg) < RegCount {
 		return nil, emu.RegStateTooSmall
@@ -491,6 +517,9 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 		return
 	}
 	if c = st.store(); c != emu.OK {
+		return
+	}
+	if c = st.post(); c != emu.OK {
 		return
 	}
 	return

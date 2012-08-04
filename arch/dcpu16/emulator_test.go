@@ -479,6 +479,26 @@ var tests = []emu.Test{
 		WantReg: []uint64{RA: 15, RI: 99, RJ: 199, PC: 8},
 		N:       5,
 	},
+	// IFE
+	{
+		Mem: []byte{
+			0x12, 0x04, // IFE A, B
+			0x61, 0x88, // SET X, 1
+			0x81, 0x8c, // SET Y, 2
+		},
+		WantReg: []uint64{RX: 1, RY: 2, PC: 3},
+		N:       3,
+	},
+	{
+		Mem: []byte{
+			0x01, 0x88, // SET A, 1
+			0x12, 0x04, // IFE A, B
+			0x61, 0x88, // SET X, 1
+			0x81, 0x8c, // SET Y, 2
+		},
+		WantReg: []uint64{RA: 1, RY: 2, PC: 4},
+		N:       4,
+	},
 }
 
 func TestSet(t *testing.T) {

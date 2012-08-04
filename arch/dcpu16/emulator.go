@@ -7,18 +7,19 @@ import (
 )
 
 const (
-	RA       = iota
-	RB       = iota
-	RC       = iota
-	RX       = iota
-	RY       = iota
-	RZ       = iota
-	RI       = iota
-	RJ       = iota
-	PC       = iota
-	SP       = iota
-	EX       = iota
-	RegCount = iota
+	RA        = iota
+	RB        = iota
+	RC        = iota
+	RX        = iota
+	RY        = iota
+	RZ        = iota
+	RI        = iota
+	RJ        = iota
+	PC        = iota
+	SP        = iota
+	EX        = iota
+	SKIP_FLAG = iota
+	RegCount  = iota
 )
 
 const (
@@ -163,6 +164,7 @@ type state struct {
 
 	res        uint16
 	postEffect int
+	skipStore  bool
 }
 
 func (st *state) fetchSpecial(v uint16) emu.Code {
@@ -454,6 +456,13 @@ func (st *state) exec() (code emu.Code) {
 		} else {
 			st.reg.SetEX(0)
 		}
+	case IFE_OP:
+		if !(st.valA == st.valB) {
+			// Ignore next instruction
+			st.reg.Set(SKIP_FLAG, 1)
+			st.skipStore = true
+			fmt.Printf("Will skip next instruction\n")
+		}
 	case STI_OP:
 		st.res = st.valA
 		st.postEffect = INC_IJ_POST
@@ -517,14 +526,22 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if c = st.fetch(); c != emu.OK {
 		return
 	}
+	// Skip flag is set by conditional instructions, like, IFE or IFC,
+	// in case if the condition was not satisfied
+	if st.reg.Get(SKIP_FLAG) != 0 {
+		st.reg.Set(SKIP_FLAG, 0)
+		return
+	}
 	if c = st.load(); c != emu.OK {
 		return
 	}
 	if c = st.exec(); c != emu.OK {
 		return
 	}
-	if c = st.store(); c != emu.OK {
-		return
+	if !st.skipStore {
+		if c = st.store(); c != emu.OK {
+			return
+		}
 	}
 	if c = st.post(); c != emu.OK {
 		return

@@ -440,22 +440,6 @@ func (st *state) exec() (code emu.Code) {
 	case SHL_OP:
 		st.res = st.valB << st.valA
 		st.reg.SetEX(uint16(((uint64(st.valB) << st.valA) >> 16) & 0xFFFF))
-	case ADX_OP:
-		v := uint64(st.valB) + uint64(st.valA) + uint64(st.reg.EX())
-		st.res = uint16(v & 0xFFFF)
-		if v > 0xFFFF {
-			st.reg.SetEX(1)
-		} else {
-			st.reg.SetEX(0)
-		}
-	case SBX_OP:
-		v := int64(st.valB) - int64(st.valA) + int64(st.reg.EX())
-		st.res = uint16(uint64(v) & 0xFFFF)
-		if v < 0 {
-			st.reg.SetEX(0xFFFF)
-		} else {
-			st.reg.SetEX(0)
-		}
 	case IFB_OP:
 		st.skipStore = true
 		if !(st.valB&st.valA != 0) {
@@ -503,6 +487,22 @@ func (st *state) exec() (code emu.Code) {
 		if !(int16(st.valB) < int16(st.valA)) {
 			// Ignore next instruction
 			st.reg.Set(SKIP_FLAG, 1)
+		}
+	case ADX_OP:
+		v := uint64(st.valB) + uint64(st.valA) + uint64(st.reg.EX())
+		st.res = uint16(v & 0xFFFF)
+		if v > 0xFFFF {
+			st.reg.SetEX(1)
+		} else {
+			st.reg.SetEX(0)
+		}
+	case SBX_OP:
+		v := int64(st.valB) - int64(st.valA) + int64(st.reg.EX())
+		st.res = uint16(uint64(v) & 0xFFFF)
+		if v < 0 {
+			st.reg.SetEX(0xFFFF)
+		} else {
+			st.reg.SetEX(0)
 		}
 	case STI_OP:
 		st.res = st.valA

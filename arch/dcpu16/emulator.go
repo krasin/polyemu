@@ -122,57 +122,63 @@ func (m *memory) Set(ind uint16, val uint16) emu.Code {
 	return emu.OK
 }
 
-type regState []uint64
-
-func (r regState) Get(ind int) uint16 {
-	return uint16(r[ind])
+type regState struct {
+	a    []uint64
+	diff map[uint64]uint64
 }
 
-func (r regState) Set(ind int, val uint16) {
-	r[ind] = uint64(val)
+func (r *regState) Get(ind int) uint16 {
+	if k, ok := r.diff[uint64(ind)]; ok {
+		return uint16(k)
+	}
+	return uint16(r.a[ind])
 }
 
-func (r regState) Dec(ind int) uint16 {
-	v := uint16(r[ind])
+func (r *regState) Set(ind int, val uint16) {
+	r.diff[uint64(ind)] = uint64(val)
+}
+
+func (r *regState) Dec(ind int) uint16 {
+	v := r.Get(ind)
 	v--
-	r[ind] = uint64(v)
+	r.Set(ind, v)
 	return v
 }
 
-func (r regState) Inc(ind int) uint16 {
-	v := uint16(r[ind])
+func (r *regState) Inc(ind int) uint16 {
+	v := r.Get(ind)
 	v++
-	r[ind] = uint64(v)
+	r.Set(ind, v)
 	return v
 }
 
-func (r regState) PC() uint16 {
-	return uint16(r[PC])
+func (r *regState) PC() uint16 {
+	return r.Get(PC)
 }
 
-func (r regState) SetPC(val uint16) {
-	r[PC] = uint64(val)
+func (r *regState) SetPC(val uint16) {
+	r.Set(PC, val)
 }
 
-func (r regState) SP() uint16 {
-	return uint16(r[SP])
+func (r *regState) SP() uint16 {
+	return r.Get(SP)
 }
 
-func (r regState) SetSP(val uint16) {
-	r[SP] = uint64(val)
+func (r *regState) SetSP(val uint16) {
+	r.Set(SP, val)
 }
 
-func (r regState) EX() uint16 {
-	return uint16(r[EX])
+func (r *regState) EX() uint16 {
+	return r.Get(EX)
 }
 
-func (r regState) SetEX(val uint16) {
-	r[EX] = uint64(val)
+func (r *regState) SetEX(val uint16) {
+	r.Set(EX, val)
 }
 
 type state struct {
 	mem *memory
-	reg regState
+	reg *regState
 
 	opcode int
 	a      uint16
@@ -608,11 +614,12 @@ func (st *state) post() emu.Code {
 }
 
 func (st *state) Step() (diff *emu.Diff, c emu.Code) {
-	if len(st.reg) < RegCount {
+	if len(st.reg.a) < RegCount {
 		return nil, emu.RegStateTooSmall
 	}
 	diff = &emu.Diff{
 		Mem: st.mem.diff,
+		Reg: st.reg.diff,
 	}
 
 	if c = st.fetch(); c != emu.OK {
@@ -644,7 +651,7 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 func (e *Emulator) Step(st *emu.State) (*emu.Diff, emu.Code) {
 	st16 := &state{
 		mem: &memory{a: st.Mem, diff: make(map[uint64]byte)},
-		reg: regState(st.Reg),
+		reg: &regState{a: st.Reg, diff: make(map[uint64]uint64)},
 	}
 	return st16.Step()
 }

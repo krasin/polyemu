@@ -19,9 +19,8 @@ func main() {
 		for j := 0; j < 256; j++ {
 			st.Mem[1] = byte(j)
 			if diff, code := e.Step(st); code == emu.OK {
-				if len(diff.Mem) == 0 && len(diff.Reg) == 0 {
-					fmt.Printf("%x, %x\n", i, j)
-					//fmt.Printf("0x%02x%02x\n", j, i)
+				if len(diff.Mem) == 0 && len(diff.Reg) == 1 && diff.Reg[dcpu16.PC] == 1 {
+					fmt.Printf("DAT 0x%02x%02x\n", j, i)
 				}
 			}
 		}

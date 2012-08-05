@@ -93,13 +93,13 @@ type memory struct {
 }
 
 func (m *memory) Byte(ind int) byte {
-	fmt.Printf("memory.Byte(%d): ", ind)
+	//	fmt.Printf("memory.Byte(%d): ", ind)
 	if v, ok := m.diff[uint64(ind)]; ok {
-		fmt.Printf("%d\n", v)
+		//		fmt.Printf("%d\n", v)
 		return v
 	}
 	if ind < len(m.a) {
-		fmt.Printf("%d\n", m.a[ind])
+		//		fmt.Printf("%d\n", m.a[ind])
 		return m.a[ind]
 	}
 	fmt.Printf("0\n")
@@ -107,7 +107,7 @@ func (m *memory) Byte(ind int) byte {
 }
 
 func (m *memory) SetByte(ind int, val byte) {
-	fmt.Printf("memory.SetByte(%d, %d)\n", ind, val)
+	//	fmt.Printf("memory.SetByte(%d, %d)\n", ind, val)
 	m.diff[uint64(ind)] = val
 }
 
@@ -116,7 +116,7 @@ func (m *memory) At(ind uint16) uint16 {
 }
 
 func (m *memory) Set(ind uint16, val uint16) emu.Code {
-	fmt.Printf("memory.Set(%d, %d)\n", ind, val)
+	//	fmt.Printf("memory.Set(%d, %d)\n", ind, val)
 	m.SetByte(2*int(ind), byte(val&0xFF))
 	m.SetByte(2*int(ind)+1, byte((val>>8)&0xFF))
 	return emu.OK
@@ -211,7 +211,7 @@ func (st *state) pop() uint16 {
 func (st *state) fetchFirst() (c emu.Code) {
 	v := st.eatWord()
 	st.opcode = int(v & 0x1F)
-	fmt.Printf("opcode: 0x%x\n", st.opcode)
+	//	fmt.Printf("opcode: 0x%x\n", st.opcode)
 	switch st.opcode {
 	case SPECIAL_OP:
 		st.skipFetchB = true
@@ -247,7 +247,7 @@ func (st *state) fetchFirst() (c emu.Code) {
 	}
 	st.a = (v >> 10) & 0x3F
 	st.b = (v >> 5) & 0x1F
-	fmt.Printf("a: 0x%x, b: 0x%x\n", st.a, st.b)
+	//	fmt.Printf("a: 0x%x, b: 0x%x\n", st.a, st.b)
 
 	return emu.OK
 }
@@ -369,7 +369,7 @@ func (st *state) fetch() (code emu.Code) {
 			return
 		}
 	}
-	fmt.Printf("st.argA: %+v, st.argB: %+v\n", st.argA, st.argB)
+	//	fmt.Printf("st.argA: %+v, st.argB: %+v\n", st.argA, st.argB)
 	return emu.OK
 }
 
@@ -398,11 +398,11 @@ func (st *state) loadVal(ar arg) uint16 {
 
 func (st *state) load() (code emu.Code) {
 	st.valA = st.loadVal(st.argA)
-	fmt.Printf("st.valA = 0x%x\n", st.valA)
+	//	fmt.Printf("st.valA = 0x%x\n", st.valA)
 
 	if !st.skipFetchB {
 		st.valB = st.loadVal(st.argB)
-		fmt.Printf("st.valB = 0x%x\n", st.valB)
+		//		fmt.Printf("st.valB = 0x%x\n", st.valB)
 	}
 	return emu.OK
 }
@@ -562,7 +562,7 @@ func (st *state) exec() (code emu.Code) {
 	default:
 		return emu.InvalidOpcode
 	}
-	fmt.Printf("st.res: 0x%x\n", st.res)
+	//	fmt.Printf("st.res: 0x%x\n", st.res)
 	return
 }
 

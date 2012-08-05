@@ -800,6 +800,25 @@ var tests = []emu.Test{
 		WantReg: []uint64{RA: 0xFFFF, RX: 1, RY: 2, PC: 4},
 		N:       4,
 	},
+	// PC
+	{
+		Mem: []byte{
+			0x61, 0x70, // SET X, PC
+			0x81, 0x70, // SET Y, PC
+			0x81, 0x87, // SET PC, 0
+		},
+		WantReg: []uint64{RX: 1, RY: 2, PC: 0},
+		N:       3,
+	},
+	// This test case is correct, but other emulators fail on it.
+	{
+		Mem: []byte{
+			0x61, 0x72, 0x10, 0x00, // SET [X+16], PC
+			0x81, 0x78, 0x10, 0x00, // SET Y, [16]
+		},
+		WantReg: []uint64{RY: 2, PC: 4},
+		N:       2,
+	},
 }
 
 func TestSet(t *testing.T) {

@@ -20,7 +20,15 @@ func main() {
 			st.Mem[1] = byte(j)
 			if diff, code := e.Step(st); code == emu.OK {
 				if len(diff.Mem) == 0 && len(diff.Reg) == 1 && diff.Reg[dcpu16.PC] == 1 {
-					fmt.Printf("DAT 0x%02x%02x\n", j, i)
+					op, code := dcpu16.Disassemble(st.Mem[:2])
+
+					fmt.Printf("0x%02x%02x %v", j, i, op)
+					if code != emu.OK {
+						fmt.Printf("(err. code=%d)", code)
+					}
+					fmt.Printf("\n")
+
+					//					fmt.Printf("DAT 0x%02x%02x\n", j, i)
 				}
 			}
 		}

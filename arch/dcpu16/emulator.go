@@ -397,8 +397,10 @@ func (st *state) execSpecial() (code emu.Code) {
 		}
 		st.reg.Set(PC, st.valA)
 		st.skipStore = true
+	case INT_SP, IAG_SP, IAS_SP, RFI_SP, IAQ_SP, HWN_SP, HWQ_SP, HWI_SP:
+		return emu.Interrupt
 	default:
-		return emu.NotImplemented
+		return emu.InvalidOpcode
 	}
 	return
 }

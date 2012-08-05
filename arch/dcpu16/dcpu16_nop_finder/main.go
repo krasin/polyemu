@@ -20,7 +20,8 @@ func main() {
 			st.Mem[1] = byte(j)
 			if diff, code := e.Step(st); code == emu.OK {
 				if len(diff.Mem) == 0 && len(diff.Reg) == 0 {
-					fmt.Printf("0x%02x%02x\n", j, i)
+					fmt.Printf("%x, %x\n", i, j)
+					//fmt.Printf("0x%02x%02x\n", j, i)
 				}
 			}
 		}

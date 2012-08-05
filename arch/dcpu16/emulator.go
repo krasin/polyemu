@@ -1,7 +1,7 @@
 package dcpu16
 
 import (
-	"fmt"
+	//	"fmt"
 
 	"github.com/krasin/polyemu/emu"
 )
@@ -102,12 +102,20 @@ func (m *memory) Byte(ind int) byte {
 		//		fmt.Printf("%d\n", m.a[ind])
 		return m.a[ind]
 	}
-	fmt.Printf("0\n")
+	//	fmt.Printf("0\n")
 	return 0
 }
 
 func (m *memory) SetByte(ind int, val byte) {
 	//	fmt.Printf("memory.SetByte(%d, %d)\n", ind, val)
+	cur := m.Byte(ind)
+	if cur == val {
+		return
+	}
+	if ind < len(m.a) && m.a[ind] == val {
+		delete(m.diff, uint64(ind))
+		return
+	}
 	m.diff[uint64(ind)] = val
 }
 
@@ -135,6 +143,14 @@ func (r *regState) Get(ind int) uint16 {
 }
 
 func (r *regState) Set(ind int, val uint16) {
+	cur := r.Get(ind)
+	if cur == val {
+		return
+	}
+	if ind < len(r.a) && r.a[ind] == uint64(val) {
+		delete(r.diff, uint64(ind))
+		return
+	}
 	r.diff[uint64(ind)] = uint64(val)
 }
 

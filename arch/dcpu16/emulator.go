@@ -542,7 +542,7 @@ func (st *state) exec() (code emu.Code) {
 		st.postEffect = DEC_IJ_POST
 
 	default:
-		return emu.NotImplemented
+		return emu.InvalidOpcode
 	}
 	fmt.Printf("st.res: 0x%x\n", st.res)
 	return

@@ -87,26 +87,38 @@ type arg struct {
 type Emulator struct {
 }
 
-type memory []byte
-
-func (m memory) At(ind uint16) uint16 {
-	fmt.Printf("memory.At(%d)\n", ind)
-	if 2*int(ind) >= len(m) {
-		return 0
-	}
-	if 2*int(ind) == len(m)-1 {
-		return uint16(m[2*int(ind)])
-	}
-	return uint16(m[2*int(ind)]) + (uint16(m[2*int(ind)+1]) << 8)
+type memory struct {
+	a    []byte
+	diff map[uint64]byte
 }
 
-func (m memory) Set(ind uint16, val uint16) emu.Code {
-	fmt.Printf("memory.Set(%d, %d)\n", ind, val)
-	if 2*int(ind)+1 >= len(m) {
-		return emu.MemoryAccessViolation
+func (m *memory) Byte(ind int) byte {
+	fmt.Printf("memory.Byte(%d): ", ind)
+	if v, ok := m.diff[uint64(ind)]; ok {
+		fmt.Printf("%d\n", v)
+		return v
 	}
-	m[2*int(ind)] = byte(val & 0xFF)
-	m[2*int(ind)+1] = byte((val >> 8) & 0xFF)
+	if ind < len(m.a) {
+		fmt.Printf("%d\n", m.a[ind])
+		return m.a[ind]
+	}
+	fmt.Printf("0\n")
+	return 0
+}
+
+func (m *memory) SetByte(ind int, val byte) {
+	fmt.Printf("memory.SetByte(%d, %d)\n", ind, val)
+	m.diff[uint64(ind)] = val
+}
+
+func (m *memory) At(ind uint16) uint16 {
+	return uint16(m.Byte(2*int(ind))) + (uint16(m.Byte(2*int(ind)+1)) << 8)
+}
+
+func (m *memory) Set(ind uint16, val uint16) emu.Code {
+	fmt.Printf("memory.Set(%d, %d)\n", ind, val)
+	m.SetByte(2*int(ind), byte(val&0xFF))
+	m.SetByte(2*int(ind)+1, byte((val>>8)&0xFF))
 	return emu.OK
 }
 
@@ -159,7 +171,7 @@ func (r regState) SetEX(val uint16) {
 }
 
 type state struct {
-	mem memory
+	mem *memory
 	reg regState
 
 	opcode int
@@ -599,6 +611,10 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 	if len(st.reg) < RegCount {
 		return nil, emu.RegStateTooSmall
 	}
+	diff = &emu.Diff{
+		Mem: st.mem.diff,
+	}
+
 	if c = st.fetch(); c != emu.OK {
 		return
 	}
@@ -627,7 +643,7 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 
 func (e *Emulator) Step(st *emu.State) (*emu.Diff, emu.Code) {
 	st16 := &state{
-		mem: memory(st.Mem),
+		mem: &memory{a: st.Mem, diff: make(map[uint64]byte)},
 		reg: regState(st.Reg),
 	}
 	return st16.Step()

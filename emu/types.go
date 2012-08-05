@@ -7,9 +7,25 @@ type State struct {
 	Reg []uint64
 }
 
+func (st *State) Apply(diff *Diff) Code {
+	for k, v := range diff.Mem {
+		if k >= uint64(len(st.Mem)) {
+			return MemoryAccessViolation
+		}
+		st.Mem[k] = v
+	}
+	for k, v := range diff.Reg {
+		if k >= uint64(len(st.Reg)) {
+			return RegStateTooSmall
+		}
+		st.Reg[k] = v
+	}
+	return OK
+}
+
 type Diff struct {
-	Mem []int32
-	Reg []int32
+	Mem map[uint64]byte
+	Reg map[uint64]uint64
 }
 
 type Emulator interface {

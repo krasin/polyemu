@@ -810,13 +810,23 @@ var tests = []emu.Test{
 		WantReg: []uint64{RX: 1, RY: 2, PC: 0},
 		N:       3,
 	},
-	// This test case is correct, but other emulators fail on it.
+	// This test case is correct, but many other emulators fail on it.
 	{
 		Mem: []byte{
 			0x61, 0x72, 0x10, 0x00, // SET [X+16], PC
 			0x81, 0x78, 0x10, 0x00, // SET Y, [16]
 		},
 		WantReg: []uint64{RY: 2, PC: 4},
+		N:       2,
+	},
+	// JSR
+	{
+		Mem: []byte{
+			0x20, 0x8c, // JSR 2
+			0x61, 0x88, // SET X, 1
+			0x81, 0x64, // SET Y, [SP]
+		},
+		WantReg: []uint64{RY: 1, PC: 3, SP: 0xFFFF},
 		N:       2,
 	},
 }

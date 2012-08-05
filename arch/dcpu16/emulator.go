@@ -52,6 +52,16 @@ const (
 	STI_OP     = 0x1e
 	STD_OP     = 0x1f
 
+	JSR_SP = 0x01
+	INT_SP = 0x08
+	IAG_SP = 0x09
+	IAS_SP = 0x0a
+	RFI_SP = 0x0b
+	IAQ_SP = 0x0c
+	HWN_SP = 0x10
+	HWQ_SP = 0x11
+	HWI_SP = 0x12
+
 	REG_ARG           = 1 // register (A, B, C, ...) value
 	REG_ADDR_ARG      = 2 // [register]
 	REG_ADDR_WORD_ARG = 3 // [register + next word]
@@ -156,8 +166,9 @@ type state struct {
 	a      uint16
 	b      uint16
 
-	argA arg
-	argB arg
+	skipFetchB bool
+	argA       arg
+	argB       arg
 
 	valA uint16
 	valB uint16
@@ -165,10 +176,6 @@ type state struct {
 	res        uint16
 	postEffect int
 	skipStore  bool
-}
-
-func (st *state) fetchSpecial(v uint16) emu.Code {
-	return emu.NotImplemented
 }
 
 func (st *state) eatWord() uint16 {
@@ -189,7 +196,7 @@ func (st *state) fetchFirst() (c emu.Code) {
 	fmt.Printf("opcode: 0x%x\n", st.opcode)
 	switch st.opcode {
 	case SPECIAL_OP:
-		return st.fetchSpecial(v)
+		st.skipFetchB = true
 	case SET_OP:
 	case ADD_OP:
 	case SUB_OP:
@@ -339,8 +346,10 @@ func (st *state) fetch() (code emu.Code) {
 	if code = st.fetchA(); code != emu.OK {
 		return
 	}
-	if code = st.fetchB(); code != emu.OK {
-		return
+	if !st.skipFetchB {
+		if code = st.fetchB(); code != emu.OK {
+			return
+		}
 	}
 	fmt.Printf("st.argA: %+v, st.argB: %+v\n", st.argA, st.argB)
 	return emu.OK
@@ -372,13 +381,32 @@ func (st *state) loadVal(ar arg) uint16 {
 func (st *state) load() (code emu.Code) {
 	st.valA = st.loadVal(st.argA)
 	fmt.Printf("st.valA = 0x%x\n", st.valA)
-	st.valB = st.loadVal(st.argB)
-	fmt.Printf("st.valB = 0x%x\n", st.valB)
+
+	if !st.skipFetchB {
+		st.valB = st.loadVal(st.argB)
+		fmt.Printf("st.valB = 0x%x\n", st.valB)
+	}
 	return emu.OK
+}
+
+func (st *state) execSpecial() (code emu.Code) {
+	switch st.b {
+	case JSR_SP:
+		if code = st.push(st.reg.PC()); code != emu.OK {
+			return
+		}
+		st.reg.Set(PC, st.valA)
+		st.skipStore = true
+	default:
+		return emu.NotImplemented
+	}
+	return
 }
 
 func (st *state) exec() (code emu.Code) {
 	switch st.opcode {
+	case SPECIAL_OP:
+		return st.execSpecial()
 	case SET_OP:
 		st.res = st.valA
 	case ADD_OP:
@@ -518,6 +546,12 @@ func (st *state) exec() (code emu.Code) {
 	return
 }
 
+func (st *state) push(val uint16) emu.Code {
+	st.reg.Dec(SP)
+	return st.mem.Set(st.reg.Get(SP), val)
+
+}
+
 func (st *state) storeVal(ar arg) emu.Code {
 	switch ar.mode {
 	case REG_ARG:
@@ -529,8 +563,7 @@ func (st *state) storeVal(ar arg) emu.Code {
 	case POP_ARG:
 		panic("not reachable")
 	case PUSH_ARG:
-		st.reg.Dec(SP)
-		return st.mem.Set(st.reg.Get(SP), st.res)
+		return st.push(st.res)
 	case ADDR_WORD_ARG:
 		return st.mem.Set(ar.val, st.res)
 	case WORD_ARG, LITERAL_ARG:

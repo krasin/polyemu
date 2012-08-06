@@ -9,7 +9,7 @@ import (
 )
 
 var zeroState = &emu.State{
-	Mem: make([]byte, 2),
+	Mem: make([]byte, 4),
 	Reg: make([]uint64, 30),
 }
 
@@ -24,28 +24,38 @@ func randRegState(seed int64) []uint64 {
 	return res
 }
 
-func randMemState(seed int64) []byte {
+func randMemState(mem []byte, seed int64) []byte {
 	rnd := rand.New(rand.NewSource(seed))
-	res := make([]byte, 65536*2)
-	for i := range res {
-		res[i] = byte(rnd.Intn(256))
+	for i := range mem {
+		mem[i] = byte(rnd.Intn(256))
 	}
-	return res
+	return mem
 }
 
 func findNops(e *dcpu16.Emulator, st *emu.State, in []uint16) (out []uint16) {
 	for _, op := range in {
+		var diff *emu.Diff
+		var code emu.Code
 		st.Mem[0] = byte(op & 0xFF)
 		st.Mem[1] = byte((op >> 8) & 0xFF)
+		st.Mem[2] = st.Mem[0]
+		st.Mem[3] = st.Mem[1]
 		st.Reg[dcpu16.PC] = 0
 
-		if diff, code := e.Step(st); code == emu.OK {
-			//			fmt.Printf("%+v\n", diff)
-			if len(diff.Mem) == 0 && len(diff.Reg) == 1 && diff.Reg[dcpu16.PC] == 1 {
-				out = append(out, op)
-			}
-
+		diff, code = e.Step(st)
+		//			fmt.Printf("%+v\n", diff)
+		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || diff.Reg[dcpu16.PC] != 1 {
+			continue
 		}
+
+		st.Apply(diff)
+		diff, code = e.Step(st)
+		//			fmt.Printf("%+v\n", diff)
+		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || diff.Reg[dcpu16.PC] != 2 {
+			continue
+		}
+
+		out = append(out, op)
 	}
 	return
 }
@@ -57,20 +67,17 @@ func main() {
 	for i := 0; i < 65536; i++ {
 		nops[i] = uint16(i)
 	}
-	states := []*emu.State{
-		zeroState,
-	}
-	for i := 0; i < 10; i++ {
-		states = append(states,
-			&emu.State{
-				Mem: randMemState(int64(i)),
-				Reg: randRegState(int64(i)),
-			})
+
+	nops = findNops(e, zeroState, nops)
+	mem := make([]byte, 65536*2)
+	for i := 0; i < 100; i++ {
+		nops = findNops(e, &emu.State{
+			Mem: randMemState(mem, int64(i)),
+			Reg: randRegState(int64(i)),
+		}, nops)
 
 	}
-	for _, st := range states {
-		nops = findNops(e, st, nops)
-	}
+
 	for _, nop := range nops {
 		mem := []byte{byte(nop & 0xFF), byte((nop >> 8) & 0xFF)}
 		op, code := dcpu16.Disassemble(mem)

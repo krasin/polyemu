@@ -77,8 +77,7 @@ func main() {
 		nops = findNops(e, &emu.State{
 			Mem: randMemState(mem, int64(i)),
 			Reg: randRegState(int64(i)),
-		}, 0, nops)
-
+		}, uint16(i), nops)
 	}
 
 	for _, nop := range nops {

@@ -120,6 +120,7 @@ func (m *memory) SetByte(ind int, val byte) {
 }
 
 func (m *memory) At(ind uint16) uint16 {
+	//	fmt.Printf("memory.At(%d)\n", ind)
 	return uint16(m.Byte(2*int(ind))) + (uint16(m.Byte(2*int(ind)+1)) << 8)
 }
 

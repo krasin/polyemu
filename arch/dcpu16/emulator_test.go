@@ -810,6 +810,15 @@ var tests = []emu.Test{
 		WantReg: []uint64{RX: 1, RY: 2, PC: 0},
 		N:       3,
 	},
+	// PC = 0xFFFF
+	{
+		Mem: []byte{
+			131070: 0x61, 131071: 0x88, // SET X, 1
+		},
+		Reg:     []uint64{PC: 0xFFFF},
+		WantReg: []uint64{RX: 1, PC: 0},
+		N:       1,
+	},
 	// This test case is correct, but many other emulators fail on it.
 	{
 		Mem: []byte{
@@ -846,7 +855,7 @@ var tests = []emu.Test{
 
 func TestSet(t *testing.T) {
 	for testInd, tt := range tests {
-		tt.Reg = make([]uint64, RegCount)
+		tt.Reg = append(tt.Reg, make([]uint64, RegCount)...)
 		tt.Mem = append(tt.Mem, make([]byte, 2*65536)...)
 		e := new(Emulator)
 		emu.RunTest(testInd, t, e, tt)

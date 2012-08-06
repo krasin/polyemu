@@ -19,7 +19,8 @@ func RunTest(testInd int, t T, e Emulator, test Test) {
 	copy(st.Mem, test.Mem)
 	copy(st.Reg, test.Reg)
 	for i := 0; i < test.N; i++ {
-		if diff, code := e.Step(st); code == OK {
+		diff := new(Diff)
+		if code := e.Step(st, diff); code == OK {
 			st.Apply(diff)
 		} else {
 			t.Errorf("test #%d: Execution failed at step %d with the following code: %v\n", testInd, i, code)

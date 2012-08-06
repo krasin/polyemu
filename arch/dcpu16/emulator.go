@@ -669,22 +669,20 @@ func (st *state) doStep() (code emu.Code) {
 	return
 }
 
-func (st *state) Step() (diff *emu.Diff, code emu.Code) {
+func (st *state) Step(diff *emu.Diff) (code emu.Code) {
 	if code = st.doStep(); code != emu.OK {
 		return
 	}
-	diff = &emu.Diff{
-		Mem: st.mem.diff,
-		Reg: st.reg.Diff(),
-	}
+	diff.Mem = st.mem.diff
+	diff.Reg = st.reg.Diff()
 
 	return
 }
 
-func (e *Emulator) Step(st *emu.State) (*emu.Diff, emu.Code) {
+func (e *Emulator) Step(st *emu.State, diff *emu.Diff) emu.Code {
 	st16 := &state{
 		mem: &memory{a: st.Mem, diff: make(map[uint64]byte)},
 		reg: newRegState(st.Reg),
 	}
-	return st16.Step()
+	return st16.Step(diff)
 }

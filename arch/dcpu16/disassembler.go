@@ -123,7 +123,8 @@ func Disassemble(mem []byte) (string, emu.Code) {
 		mem: &memory{a: mem, diff: make(map[uint64]byte)},
 		reg: newRegState(make([]uint64, 30)),
 	}
-	if _, code := st16.Step(); code != emu.OK {
+	diff := new(emu.Diff)
+	if code := st16.Step(diff); code != emu.OK {
 		return "", code
 	}
 	if st16.opcode == SPECIAL_OP {

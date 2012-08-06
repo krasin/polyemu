@@ -9,7 +9,7 @@ import (
 )
 
 var zeroState = &emu.State{
-	Mem: make([]byte, 4),
+	Mem: make([]byte, 1<<17),
 	Reg: make([]uint64, 30),
 }
 
@@ -32,26 +32,27 @@ func randMemState(mem []byte, seed int64) []byte {
 	return mem
 }
 
-func findNops(e *dcpu16.Emulator, st *emu.State, in []uint16) (out []uint16) {
+func findNops(e *dcpu16.Emulator, st *emu.State, pc uint16, in []uint16) (out []uint16) {
 	for _, op := range in {
 		var diff *emu.Diff
 		var code emu.Code
-		st.Mem[0] = byte(op & 0xFF)
-		st.Mem[1] = byte((op >> 8) & 0xFF)
-		st.Mem[2] = st.Mem[0]
-		st.Mem[3] = st.Mem[1]
-		st.Reg[dcpu16.PC] = 0
+		st.Mem[2*int(pc)] = byte(op & 0xFF)
+		st.Mem[2*int(pc)+1] = byte((op >> 8) & 0xFF)
+		st.Mem[2*int(pc+1)] = st.Mem[2*int(pc)]
+		st.Mem[2*int(pc+1)+1] = st.Mem[2*int(pc)+1]
+		st.Reg[dcpu16.PC] = uint64(pc)
 
 		diff, code = e.Step(st)
 		//			fmt.Printf("%+v\n", diff)
-		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || diff.Reg[dcpu16.PC] != 1 {
+
+		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || diff.Reg[dcpu16.PC] != uint64(pc+1) {
 			continue
 		}
 
 		st.Apply(diff)
 		diff, code = e.Step(st)
 		//			fmt.Printf("%+v\n", diff)
-		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || diff.Reg[dcpu16.PC] != 2 {
+		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || diff.Reg[dcpu16.PC] != uint64(pc+2) {
 			continue
 		}
 
@@ -68,13 +69,14 @@ func main() {
 		nops[i] = uint16(i)
 	}
 
-	nops = findNops(e, zeroState, nops)
+	nops = findNops(e, zeroState, 0, nops)
+	//	nops = findNops(e, zeroState, 0xFFFF, nops)
 	mem := make([]byte, 65536*2)
 	for i := 0; i < 100; i++ {
 		nops = findNops(e, &emu.State{
 			Mem: randMemState(mem, int64(i)),
 			Reg: randRegState(int64(i)),
-		}, nops)
+		}, 0, nops)
 
 	}
 

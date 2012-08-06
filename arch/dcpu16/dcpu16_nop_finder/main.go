@@ -24,16 +24,6 @@ func randRegState(seed int64) []uint64 {
 	return res
 }
 
-var randRegState0 = &emu.State{
-	Mem: make([]byte, 2),
-	Reg: randRegState(0),
-}
-
-var randRegState1 = &emu.State{
-	Mem: make([]byte, 2),
-	Reg: randRegState(1),
-}
-
 func findNops(e *dcpu16.Emulator, st *emu.State, in []uint16) (out []uint16) {
 	for _, op := range in {
 		st.Mem[0] = byte(op & 0xFF)
@@ -60,8 +50,14 @@ func main() {
 	}
 	states := []*emu.State{
 		zeroState,
-		randRegState0,
-		randRegState1,
+	}
+	for i := 0; i < 10; i++ {
+		states = append(states,
+			&emu.State{
+				Mem: make([]byte, 2),
+				Reg: randRegState(int64(i)),
+			})
+
 	}
 	for _, st := range states {
 		nops = findNops(e, st, nops)

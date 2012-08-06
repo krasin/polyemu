@@ -132,27 +132,35 @@ func (m *memory) Set(ind uint16, val uint16) emu.Code {
 }
 
 type regState struct {
-	a    []uint64
-	diff map[uint64]uint64
+	a []uint64
+	b []uint64
+}
+
+func newRegState(a []uint64) *regState {
+	res := &regState{
+		a: a,
+		b: make([]uint64, len(a)),
+	}
+	copy(res.b, res.a)
+	return res
 }
 
 func (r *regState) Get(ind int) uint16 {
-	if k, ok := r.diff[uint64(ind)]; ok {
-		return uint16(k)
-	}
-	return uint16(r.a[ind])
+	return uint16(r.b[ind])
 }
 
 func (r *regState) Set(ind int, val uint16) {
-	cur := r.Get(ind)
-	if cur == val {
-		return
+	r.b[ind] = uint64(val)
+}
+
+func (r *regState) Diff() map[uint64]uint64 {
+	res := make(map[uint64]uint64)
+	for i, b := range r.b {
+		if r.a[i] != b {
+			res[uint64(i)] = b
+		}
 	}
-	if ind < len(r.a) && r.a[ind] == uint64(val) {
-		delete(r.diff, uint64(ind))
-		return
-	}
-	r.diff[uint64(ind)] = uint64(val)
+	return res
 }
 
 func (r *regState) Dec(ind int) uint16 {
@@ -630,16 +638,12 @@ func (st *state) post() emu.Code {
 	return emu.OK
 }
 
-func (st *state) Step() (diff *emu.Diff, c emu.Code) {
+func (st *state) doStep() (code emu.Code) {
 	if len(st.reg.a) < RegCount {
-		return nil, emu.RegStateTooSmall
-	}
-	diff = &emu.Diff{
-		Mem: st.mem.diff,
-		Reg: st.reg.diff,
+		return emu.RegStateTooSmall
 	}
 
-	if c = st.fetch(); c != emu.OK {
+	if code = st.fetch(); code != emu.OK {
 		return
 	}
 	// Skip flag is set by conditional instructions, like, IFE or IFC,
@@ -648,27 +652,39 @@ func (st *state) Step() (diff *emu.Diff, c emu.Code) {
 		st.reg.Set(SKIP_FLAG, 0)
 		return
 	}
-	if c = st.load(); c != emu.OK {
+	if code = st.load(); code != emu.OK {
 		return
 	}
-	if c = st.exec(); c != emu.OK {
+	if code = st.exec(); code != emu.OK {
 		return
 	}
 	if !st.skipStore {
-		if c = st.store(); c != emu.OK {
+		if code = st.store(); code != emu.OK {
 			return
 		}
 	}
-	if c = st.post(); c != emu.OK {
+	if code = st.post(); code != emu.OK {
 		return
 	}
+	return
+}
+
+func (st *state) Step() (diff *emu.Diff, code emu.Code) {
+	if code = st.doStep(); code != emu.OK {
+		return
+	}
+	diff = &emu.Diff{
+		Mem: st.mem.diff,
+		Reg: st.reg.Diff(),
+	}
+
 	return
 }
 
 func (e *Emulator) Step(st *emu.State) (*emu.Diff, emu.Code) {
 	st16 := &state{
 		mem: &memory{a: st.Mem, diff: make(map[uint64]byte)},
-		reg: &regState{a: st.Reg, diff: make(map[uint64]uint64)},
+		reg: newRegState(st.Reg),
 	}
 	return st16.Step()
 }

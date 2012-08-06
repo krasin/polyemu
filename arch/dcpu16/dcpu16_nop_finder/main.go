@@ -73,7 +73,7 @@ func main() {
 	nops = findNops(e, zeroState, 0xFFFF, nops)
 	nops = findNops(e, zeroState, 0x1234, nops)
 	mem := make([]byte, 65536*2)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 100000; i++ {
 		nops = findNops(e, &emu.State{
 			Mem: randMemState(mem, int64(i)),
 			Reg: randRegState(int64(i)),

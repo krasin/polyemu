@@ -24,6 +24,15 @@ func randRegState(seed int64) []uint64 {
 	return res
 }
 
+func randMemState(seed int64) []byte {
+	rnd := rand.New(rand.NewSource(seed))
+	res := make([]byte, 65536*2)
+	for i := range res {
+		res[i] = byte(rnd.Intn(256))
+	}
+	return res
+}
+
 func findNops(e *dcpu16.Emulator, st *emu.State, in []uint16) (out []uint16) {
 	for _, op := range in {
 		st.Mem[0] = byte(op & 0xFF)
@@ -54,7 +63,7 @@ func main() {
 	for i := 0; i < 10; i++ {
 		states = append(states,
 			&emu.State{
-				Mem: make([]byte, 2),
+				Mem: randMemState(int64(i)),
 				Reg: randRegState(int64(i)),
 			})
 

@@ -120,7 +120,7 @@ func argStr(ar arg) string {
 
 func Disassemble(mem []byte) (string, emu.Code) {
 	st16 := &state{
-		mem: &memory{a: mem, diff: make(map[uint64]byte)},
+		mem: newMemory(mem),
 		reg: newRegState(make([]uint64, 30)),
 	}
 	diff := new(emu.Diff)

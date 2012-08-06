@@ -8,11 +8,11 @@ type State struct {
 }
 
 func (st *State) Apply(diff *Diff) Code {
-	for k, v := range diff.Mem {
-		if k >= uint64(len(st.Mem)) {
+	for _, v := range diff.Mem {
+		if v.Ind >= uint64(len(st.Mem)) {
 			return MemoryAccessViolation
 		}
-		st.Mem[k] = v
+		st.Mem[v.Ind] = byte(v.Val)
 	}
 	for _, v := range diff.Reg {
 		if v.Ind >= uint64(len(st.Reg)) {
@@ -28,23 +28,25 @@ type DiffPair struct {
 	Val uint64
 }
 
-type Diff struct {
-	Mem map[uint64]byte
-	Reg []DiffPair
-}
+type DiffPairs []DiffPair
 
-func (diff *Diff) Clear() {
-	diff.Mem = nil
-	diff.Reg = diff.Reg[:0]
-}
-
-func (diff *Diff) HasReg(ind, val uint64) bool {
-	for _, v := range diff.Reg {
+func (p DiffPairs) Has(ind, val uint64) bool {
+	for _, v := range p {
 		if v.Ind == ind {
 			return v.Val == val
 		}
 	}
 	return false
+}
+
+type Diff struct {
+	Mem DiffPairs
+	Reg DiffPairs
+}
+
+func (diff *Diff) Clear() {
+	diff.Mem = diff.Mem[:0]
+	diff.Reg = diff.Reg[:0]
 }
 
 type Emulator interface {

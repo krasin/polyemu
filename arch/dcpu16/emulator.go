@@ -89,15 +89,40 @@ type Emulator struct {
 
 type memory struct {
 	a    []byte
-	diff map[uint64]byte
+	diff []emu.DiffPair
+}
+
+func newMemory(a []byte) *memory {
+	return &memory{
+		a: a,
+	}
+}
+
+func (m *memory) Diff(diff []emu.DiffPair) []emu.DiffPair {
+	if len(m.diff) == 0 {
+		return diff
+	}
+	for i, v := range m.diff {
+		skip := false
+		for j := i + 1; j < len(m.diff); j++ {
+			if v.Ind == m.diff[j].Ind {
+				skip = true
+				break
+			}
+		}
+		if !skip && m.a[v.Ind] != byte(v.Val) {
+			diff = append(diff, v)
+		}
+	}
+	return diff
 }
 
 func (m *memory) Byte(ind int) byte {
 	//	fmt.Printf("memory.Byte(%d): ", ind)
-	if v, ok := m.diff[uint64(ind)]; ok {
-		//		fmt.Printf("%d\n", v)
-		return v
-	}
+	//	if v, ok := m.diff[uint64(ind)]; ok {
+	//		fmt.Printf("%d\n", v)
+	//		return v
+	//	}
 	if ind < len(m.a) {
 		//		fmt.Printf("%d\n", m.a[ind])
 		return m.a[ind]
@@ -107,16 +132,17 @@ func (m *memory) Byte(ind int) byte {
 }
 
 func (m *memory) SetByte(ind int, val byte) {
+	m.diff = append(m.diff, emu.DiffPair{uint64(ind), uint64(val)})
 	//	fmt.Printf("memory.SetByte(%d, %d)\n", ind, val)
-	cur := m.Byte(ind)
-	if cur == val {
-		return
-	}
-	if ind < len(m.a) && m.a[ind] == val {
-		delete(m.diff, uint64(ind))
-		return
-	}
-	m.diff[uint64(ind)] = val
+	//	cur := m.Byte(ind)
+	//	if cur == val {
+	//		return
+	//	}
+	//	if ind < len(m.a) && m.a[ind] == val {
+	//		delete(m.diff, uint64(ind))
+	//		return
+	//	}
+	//	m.diff[uint64(ind)] = val
 }
 
 func (m *memory) At(ind uint16) uint16 {
@@ -672,7 +698,7 @@ func (st *state) Step(diff *emu.Diff) (code emu.Code) {
 	if code = st.doStep(); code != emu.OK {
 		return
 	}
-	diff.Mem = st.mem.diff
+	diff.Mem = st.mem.Diff(diff.Mem)
 	diff.Reg = st.reg.Diff(diff.Reg)
 
 	return
@@ -680,7 +706,7 @@ func (st *state) Step(diff *emu.Diff) (code emu.Code) {
 
 func (e *Emulator) Step(st *emu.State, diff *emu.Diff) emu.Code {
 	st16 := &state{
-		mem: &memory{a: st.Mem, diff: make(map[uint64]byte)},
+		mem: newMemory(st.Mem),
 		reg: newRegState(st.Reg),
 	}
 	return st16.Step(diff)

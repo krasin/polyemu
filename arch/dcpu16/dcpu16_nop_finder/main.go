@@ -70,7 +70,7 @@ func findNops(e *dcpu16.Emulator, st *emu.State, pc uint16, in []uint16) (out []
 		code = e.Step(st, diff)
 		//			fmt.Printf("%+v\n", diff)
 
-		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || !diff.HasReg(dcpu16.PC, uint64(pc+1)) {
+		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || !diff.Reg.Has(dcpu16.PC, uint64(pc+1)) {
 			continue
 		}
 
@@ -78,7 +78,7 @@ func findNops(e *dcpu16.Emulator, st *emu.State, pc uint16, in []uint16) (out []
 		diff.Clear()
 		code = e.Step(st, diff)
 		//			fmt.Printf("%+v\n", diff)
-		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || !diff.HasReg(dcpu16.PC, uint64(pc+2)) {
+		if code != emu.OK || len(diff.Mem) != 0 || len(diff.Reg) != 1 || !diff.Reg.Has(dcpu16.PC, uint64(pc+2)) {
 			continue
 		}
 

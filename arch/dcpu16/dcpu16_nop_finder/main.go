@@ -3,13 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"math/rand"
+	"os"
+	"runtime/pprof"
 
 	"github.com/krasin/polyemu/arch/dcpu16"
 	"github.com/krasin/polyemu/emu"
 )
 
 var n = flag.Int("n", 100, "Number of random tries. 100k works about 20 minutes")
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 var zeroState = &emu.State{
 	Mem: make([]byte, 1<<17),
@@ -65,6 +69,15 @@ func findNops(e *dcpu16.Emulator, st *emu.State, pc uint16, in []uint16) (out []
 }
 
 func main() {
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 	e := new(dcpu16.Emulator)
 	fmt.Printf("Possible 2-byte nops (false positives are possible):\n")
 	nops := make([]uint16, 65536)

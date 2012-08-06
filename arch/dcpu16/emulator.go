@@ -7,18 +7,18 @@ import (
 )
 
 const (
-	RA        = iota
-	RB        = iota
-	RC        = iota
-	RX        = iota
-	RY        = iota
-	RZ        = iota
-	RI        = iota
-	RJ        = iota
-	PC        = iota
-	SP        = iota
-	EX        = iota
-	SKIP_FLAG = iota
+	RA        = 0
+	RB        = 1
+	RC        = 2
+	RX        = 3
+	RY        = 4
+	RZ        = 5
+	RI        = 6
+	RJ        = 7
+	PC        = 8
+	SP        = 9
+	EX        = 10
+	SKIP_FLAG = 11
 	RegCount  = iota
 )
 

@@ -70,7 +70,8 @@ func main() {
 	}
 
 	nops = findNops(e, zeroState, 0, nops)
-	//	nops = findNops(e, zeroState, 0xFFFF, nops)
+	nops = findNops(e, zeroState, 0xFFFF, nops)
+	nops = findNops(e, zeroState, 0x1234, nops)
 	mem := make([]byte, 65536*2)
 	for i := 0; i < 100; i++ {
 		nops = findNops(e, &emu.State{

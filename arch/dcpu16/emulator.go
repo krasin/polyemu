@@ -153,14 +153,13 @@ func (r *regState) Set(ind int, val uint16) {
 	r.b[ind] = uint64(val)
 }
 
-func (r *regState) Diff() map[uint64]uint64 {
-	res := make(map[uint64]uint64)
+func (r *regState) Diff(diff []emu.DiffPair) []emu.DiffPair {
 	for i, b := range r.b {
 		if r.a[i] != b {
-			res[uint64(i)] = b
+			diff = append(diff, emu.DiffPair{uint64(i), b})
 		}
 	}
-	return res
+	return diff
 }
 
 func (r *regState) Dec(ind int) uint16 {
@@ -674,7 +673,7 @@ func (st *state) Step(diff *emu.Diff) (code emu.Code) {
 		return
 	}
 	diff.Mem = st.mem.diff
-	diff.Reg = st.reg.Diff()
+	diff.Reg = st.reg.Diff(diff.Reg)
 
 	return
 }

@@ -14,18 +14,37 @@ func (st *State) Apply(diff *Diff) Code {
 		}
 		st.Mem[k] = v
 	}
-	for k, v := range diff.Reg {
-		if k >= uint64(len(st.Reg)) {
+	for _, v := range diff.Reg {
+		if v.Ind >= uint64(len(st.Reg)) {
 			return RegStateTooSmall
 		}
-		st.Reg[k] = v
+		st.Reg[v.Ind] = v.Val
 	}
 	return OK
 }
 
+type DiffPair struct {
+	Ind uint64
+	Val uint64
+}
+
 type Diff struct {
 	Mem map[uint64]byte
-	Reg map[uint64]uint64
+	Reg []DiffPair
+}
+
+func (diff *Diff) Clear() {
+	diff.Mem = nil
+	diff.Reg = diff.Reg[:0]
+}
+
+func (diff *Diff) HasReg(ind, val uint64) bool {
+	for _, v := range diff.Reg {
+		if v.Ind == ind {
+			return v.Val == val
+		}
+	}
+	return false
 }
 
 type Emulator interface {

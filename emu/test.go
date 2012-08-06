@@ -16,10 +16,11 @@ func RunTest(testInd int, t T, e Emulator, test Test) {
 		Mem: make([]byte, len(test.Mem)),
 		Reg: make([]uint64, len(test.Reg)),
 	}
+	diff := new(Diff)
 	copy(st.Mem, test.Mem)
 	copy(st.Reg, test.Reg)
 	for i := 0; i < test.N; i++ {
-		diff := new(Diff)
+		diff.Clear()
 		if code := e.Step(st, diff); code == OK {
 			st.Apply(diff)
 		} else {

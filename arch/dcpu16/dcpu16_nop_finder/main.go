@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/krasin/polyemu/arch/dcpu16"
 	"github.com/krasin/polyemu/emu"
@@ -12,6 +13,22 @@ var zeroState = &emu.State{
 	Reg: make([]uint64, 30),
 }
 
+func randRegState(seed int64) []uint64 {
+	src := rand.NewSource(seed)
+	rnd := rand.New(src)
+	res := make([]uint64, 30)
+	for i := range res {
+		res[i] = uint64(rnd.Intn(65536))
+	}
+	res[dcpu16.SKIP_FLAG] = 0
+	return res
+}
+
+var randRegState0 = &emu.State{
+	Mem: make([]byte, 2),
+	Reg: randRegState(0),
+}
+
 func findNops(e *dcpu16.Emulator, st *emu.State, in []uint16) (out []uint16) {
 	for _, op := range in {
 		st.Mem[0] = byte(op & 0xFF)
@@ -19,6 +36,7 @@ func findNops(e *dcpu16.Emulator, st *emu.State, in []uint16) (out []uint16) {
 		st.Reg[dcpu16.PC] = 0
 
 		if diff, code := e.Step(st); code == emu.OK {
+			//			fmt.Printf("%+v\n", diff)
 			if len(diff.Mem) == 0 && len(diff.Reg) == 1 && diff.Reg[dcpu16.PC] == 1 {
 				out = append(out, op)
 			}
@@ -37,6 +55,7 @@ func main() {
 	}
 	states := []*emu.State{
 		zeroState,
+		randRegState0,
 	}
 	for _, st := range states {
 		nops = findNops(e, st, nops)

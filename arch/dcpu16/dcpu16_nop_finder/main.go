@@ -1,12 +1,15 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math/rand"
 
 	"github.com/krasin/polyemu/arch/dcpu16"
 	"github.com/krasin/polyemu/emu"
 )
+
+var n = flag.Int("n", 100, "Number of random tries. 100k works about 20 minutes")
 
 var zeroState = &emu.State{
 	Mem: make([]byte, 1<<17),
@@ -73,7 +76,7 @@ func main() {
 	nops = findNops(e, zeroState, 0xFFFF, nops)
 	nops = findNops(e, zeroState, 0x1234, nops)
 	mem := make([]byte, 65536*2)
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < *n; i++ {
 		nops = findNops(e, &emu.State{
 			Mem: randMemState(mem, int64(i)),
 			Reg: randRegState(int64(i)),

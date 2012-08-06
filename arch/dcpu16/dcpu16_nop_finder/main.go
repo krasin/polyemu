@@ -24,8 +24,16 @@ func randRegState(seed int64) []uint64 {
 	src := rand.NewSource(seed)
 	rnd := rand.New(src)
 	res := make([]uint64, 30)
+	var v uint32
+	var k int
 	for i := range res {
-		res[i] = uint64(rnd.Intn(65536))
+		if k == 0 {
+			v = rnd.Uint32()
+			k = 2
+		}
+		res[i] = uint64(v & 0xFFFF)
+		v >>= 16
+		k--
 	}
 	res[dcpu16.SKIP_FLAG] = 0
 	return res
@@ -33,8 +41,16 @@ func randRegState(seed int64) []uint64 {
 
 func randMemState(mem []byte, seed int64) []byte {
 	rnd := rand.New(rand.NewSource(seed))
+	var v uint64
+	var k int
 	for i := range mem {
-		mem[i] = byte(rnd.Intn(256))
+		if k == 0 {
+			v = uint64(rnd.Int63n(0xFFFFFFFFFFFFFF))
+			k = 7
+		}
+		mem[i] = byte(v & 0xFF)
+		v >>= 8
+		k--
 	}
 	return mem
 }

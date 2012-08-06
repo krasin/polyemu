@@ -7,30 +7,47 @@ import (
 	"github.com/krasin/polyemu/emu"
 )
 
-func main() {
-	st := &emu.State{
-		Mem: make([]byte, 2),
-		Reg: make([]uint64, 30),
+var zeroState = &emu.State{
+	Mem: make([]byte, 2),
+	Reg: make([]uint64, 30),
+}
+
+func findNops(e *dcpu16.Emulator, st *emu.State, in []uint16) (out []uint16) {
+	for _, op := range in {
+		st.Mem[0] = byte(op & 0xFF)
+		st.Mem[1] = byte((op >> 8) & 0xFF)
+		st.Reg[dcpu16.PC] = 0
+
+		if diff, code := e.Step(st); code == emu.OK {
+			if len(diff.Mem) == 0 && len(diff.Reg) == 1 && diff.Reg[dcpu16.PC] == 1 {
+				out = append(out, op)
+			}
+
+		}
 	}
+	return
+}
+
+func main() {
 	e := new(dcpu16.Emulator)
 	fmt.Printf("Possible 2-byte nops (false positives are possible):\n")
-	for i := 0; i < 256; i++ {
-		st.Mem[0] = byte(i)
-		for j := 0; j < 256; j++ {
-			st.Mem[1] = byte(j)
-			if diff, code := e.Step(st); code == emu.OK {
-				if len(diff.Mem) == 0 && len(diff.Reg) == 1 && diff.Reg[dcpu16.PC] == 1 {
-					op, code := dcpu16.Disassemble(st.Mem[:2])
-
-					fmt.Printf("0x%02x%02x %v", j, i, op)
-					if code != emu.OK {
-						fmt.Printf("(err. code=%d)", code)
-					}
-					fmt.Printf("\n")
-
-					//					fmt.Printf("DAT 0x%02x%02x\n", j, i)
-				}
-			}
+	nops := make([]uint16, 65536)
+	for i := 0; i < 65536; i++ {
+		nops[i] = uint16(i)
+	}
+	states := []*emu.State{
+		zeroState,
+	}
+	for _, st := range states {
+		nops = findNops(e, st, nops)
+	}
+	for _, nop := range nops {
+		mem := []byte{byte(nop & 0xFF), byte((nop >> 8) & 0xFF)}
+		op, code := dcpu16.Disassemble(mem)
+		fmt.Printf("0x%02x%02x %v", mem[1], mem[0], op)
+		if code != emu.OK {
+			fmt.Printf("(err. code=%d)", code)
 		}
+		fmt.Printf("\n")
 	}
 }

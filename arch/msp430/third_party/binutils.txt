@@ -1,0 +1,1 @@
+Ubuntu has the following package: binutils-msp430 - Binary utilities supporting TI's MSP430 targets

@@ -59,58 +59,13 @@ func (m *memory) SetWord(ind uint16, val uint16) emu.Code {
 	return emu.OK
 }
 
-type regState struct {
-	a []uint64
-	b []uint64
-}
-
-func newRegState(a []uint64) *regState {
-	res := &regState{
-		a: a,
-		b: make([]uint64, len(a)),
-	}
-	copy(res.b, res.a)
-	return res
-}
-
-func (r *regState) Get(ind int) uint16 {
-	return uint16(r.b[ind])
-}
-
-func (r *regState) Set(ind int, val uint16) {
-	r.b[ind] = uint64(val)
-}
-
-func (r *regState) Diff(diff []emu.DiffPair) []emu.DiffPair {
-	for i, b := range r.b {
-		if r.a[i] != b {
-			diff = append(diff, emu.DiffPair{uint64(i), b})
-		}
-	}
-	return diff
-}
-
-func (r *regState) Dec(ind int) uint16 {
-	v := r.Get(ind)
-	v--
-	r.Set(ind, v)
-	return v
-}
-
-func (r *regState) Inc(ind int) uint16 {
-	v := r.Get(ind)
-	v++
-	r.Set(ind, v)
-	return v
-}
-
 type state struct {
 	mem *memory
-	reg *regState
+	reg *emu.Reg16State
 }
 
 func (st *state) doStep() (code emu.Code) {
-	if len(st.reg.a) < RegCount {
+	if st.reg.Len() < RegCount {
 		return emu.RegStateTooSmall
 	}
 	return emu.NotImplemented
@@ -132,7 +87,7 @@ type Emulator struct {
 func (e *Emulator) Step(st *emu.State, diff *emu.Diff) emu.Code {
 	s := &state{
 		mem: newMemory(st.Mem),
-		reg: newRegState(st.Reg),
+		reg: emu.NewReg16State(st.Reg),
 	}
 	return s.Step(diff)
 }

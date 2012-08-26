@@ -157,78 +157,9 @@ func (m *memory) Set(ind uint16, val uint16) emu.Code {
 	return emu.OK
 }
 
-type regState struct {
-	a []uint64
-	b []uint64
-}
-
-func newRegState(a []uint64) *regState {
-	res := &regState{
-		a: a,
-		b: make([]uint64, len(a)),
-	}
-	copy(res.b, res.a)
-	return res
-}
-
-func (r *regState) Get(ind int) uint16 {
-	return uint16(r.b[ind])
-}
-
-func (r *regState) Set(ind int, val uint16) {
-	r.b[ind] = uint64(val)
-}
-
-func (r *regState) Diff(diff []emu.DiffPair) []emu.DiffPair {
-	for i, b := range r.b {
-		if r.a[i] != b {
-			diff = append(diff, emu.DiffPair{uint64(i), b})
-		}
-	}
-	return diff
-}
-
-func (r *regState) Dec(ind int) uint16 {
-	v := r.Get(ind)
-	v--
-	r.Set(ind, v)
-	return v
-}
-
-func (r *regState) Inc(ind int) uint16 {
-	v := r.Get(ind)
-	v++
-	r.Set(ind, v)
-	return v
-}
-
-func (r *regState) PC() uint16 {
-	return r.Get(PC)
-}
-
-func (r *regState) SetPC(val uint16) {
-	r.Set(PC, val)
-}
-
-func (r *regState) SP() uint16 {
-	return r.Get(SP)
-}
-
-func (r *regState) SetSP(val uint16) {
-	r.Set(SP, val)
-}
-
-func (r *regState) EX() uint16 {
-	return r.Get(EX)
-}
-
-func (r *regState) SetEX(val uint16) {
-	r.Set(EX, val)
-}
-
 type state struct {
 	mem *memory
-	reg *regState
+	reg *emu.Reg16State
 
 	opcode int
 	a      uint16
@@ -247,14 +178,14 @@ type state struct {
 }
 
 func (st *state) eatWord() uint16 {
-	v := st.mem.At(st.reg.PC())
-	st.reg.SetPC(st.reg.PC() + 1)
+	v := st.mem.At(st.reg.Get(PC))
+	st.reg.Inc(PC)
 	return v
 }
 
 func (st *state) pop() uint16 {
-	v := st.mem.At(st.reg.SP())
-	st.reg.SetSP(st.reg.SP() + 1)
+	v := st.mem.At(st.reg.Get(SP))
+	st.reg.Inc(SP)
 	return v
 }
 
@@ -460,7 +391,7 @@ func (st *state) load() (code emu.Code) {
 func (st *state) execSpecial() (code emu.Code) {
 	switch st.b {
 	case JSR_SP:
-		if code = st.push(st.reg.PC()); code != emu.OK {
+		if code = st.push(st.reg.Get(PC)); code != emu.OK {
 			return
 		}
 		st.reg.Set(PC, st.valA)
@@ -481,35 +412,35 @@ func (st *state) exec() (code emu.Code) {
 		st.res = st.valA
 	case ADD_OP:
 		st.res = st.valB + st.valA
-		st.reg.SetEX(uint16((int(st.valB) + int(st.valA)) >> 16))
+		st.reg.Set(EX, uint16((int(st.valB)+int(st.valA))>>16))
 	case SUB_OP:
 		st.res = st.valB - st.valA
 		if st.valB < st.valA {
-			st.reg.SetEX(0xFFFF)
+			st.reg.Set(EX, 0xFFFF)
 		} else {
-			st.reg.SetEX(0)
+			st.reg.Set(EX, 0)
 		}
 	case MUL_OP:
 		st.res = st.valB * st.valA
-		st.reg.SetEX(uint16(((uint64(st.valB) * uint64(st.valA)) >> 16) & 0xFFFF))
+		st.reg.Set(EX, uint16(((uint64(st.valB)*uint64(st.valA))>>16)&0xFFFF))
 	case MLI_OP:
 		st.res = uint16(int16(st.valB) * int16(st.valA))
-		st.reg.SetEX(uint16(((int64(int16(st.valB)) * int64(int16(st.valA))) >> 16) & 0xFFFF))
+		st.reg.Set(EX, uint16(((int64(int16(st.valB))*int64(int16(st.valA)))>>16)&0xFFFF))
 	case DIV_OP:
 		if st.valA == 0 {
 			st.res = 0
-			st.reg.SetEX(0)
+			st.reg.Set(EX, 0)
 		} else {
 			st.res = st.valB / st.valA
-			st.reg.SetEX(uint16(((uint64(st.valB) << 16) / uint64(st.valA)) & 0xFFFF))
+			st.reg.Set(EX, uint16(((uint64(st.valB)<<16)/uint64(st.valA))&0xFFFF))
 		}
 	case DVI_OP:
 		if st.valA == 0 {
 			st.res = 0
-			st.reg.SetEX(0)
+			st.reg.Set(EX, 0)
 		} else {
 			st.res = uint16(int16(st.valB) / int16(st.valA))
-			st.reg.SetEX(uint16(((int64(int16(st.valB)) << 16) / int64(int16(st.valA))) & 0xFFFF))
+			st.reg.Set(EX, uint16(((int64(int16(st.valB))<<16)/int64(int16(st.valA)))&0xFFFF))
 		}
 	case MOD_OP:
 		if st.valA == 0 {
@@ -531,13 +462,13 @@ func (st *state) exec() (code emu.Code) {
 		st.res = st.valB ^ st.valA
 	case SHR_OP:
 		st.res = st.valB >> st.valA
-		st.reg.SetEX(uint16(((uint64(st.valB) << 16) >> st.valA) & 0xFFFF))
+		st.reg.Set(EX, uint16(((uint64(st.valB)<<16)>>st.valA)&0xFFFF))
 	case ASR_OP:
 		st.res = uint16(int64(int16(st.valB)) >> st.valA)
-		st.reg.SetEX(uint16(((int64(int16(st.valB)) << 16) >> st.valA) & 0xFFFF))
+		st.reg.Set(EX, uint16(((int64(int16(st.valB))<<16)>>st.valA)&0xFFFF))
 	case SHL_OP:
 		st.res = st.valB << st.valA
-		st.reg.SetEX(uint16(((uint64(st.valB) << st.valA) >> 16) & 0xFFFF))
+		st.reg.Set(EX, uint16(((uint64(st.valB)<<st.valA)>>16)&0xFFFF))
 	case IFB_OP:
 		st.skipStore = true
 		if !(st.valB&st.valA != 0) {
@@ -587,20 +518,20 @@ func (st *state) exec() (code emu.Code) {
 			st.reg.Set(SKIP_FLAG, 1)
 		}
 	case ADX_OP:
-		v := uint64(st.valB) + uint64(st.valA) + uint64(st.reg.EX())
+		v := uint64(st.valB) + uint64(st.valA) + uint64(st.reg.Get(EX))
 		st.res = uint16(v & 0xFFFF)
 		if v > 0xFFFF {
-			st.reg.SetEX(1)
+			st.reg.Set(EX, 1)
 		} else {
-			st.reg.SetEX(0)
+			st.reg.Set(EX, 0)
 		}
 	case SBX_OP:
-		v := int64(st.valB) - int64(st.valA) + int64(st.reg.EX())
+		v := int64(st.valB) - int64(st.valA) + int64(st.reg.Get(EX))
 		st.res = uint16(uint64(v) & 0xFFFF)
 		if v < 0 {
-			st.reg.SetEX(0xFFFF)
+			st.reg.Set(EX, 0xFFFF)
 		} else {
-			st.reg.SetEX(0)
+			st.reg.Set(EX, 0)
 		}
 	case STI_OP:
 		st.res = st.valA
@@ -664,7 +595,7 @@ func (st *state) post() emu.Code {
 }
 
 func (st *state) doStep() (code emu.Code) {
-	if len(st.reg.a) < RegCount {
+	if st.reg.Len() < RegCount {
 		return emu.RegStateTooSmall
 	}
 
@@ -707,7 +638,7 @@ func (st *state) Step(diff *emu.Diff) (code emu.Code) {
 func (e *Emulator) Step(st *emu.State, diff *emu.Diff) emu.Code {
 	st16 := &state{
 		mem: newMemory(st.Mem),
-		reg: newRegState(st.Reg),
+		reg: emu.NewReg16State(st.Reg),
 	}
 	return st16.Step(diff)
 }

@@ -121,7 +121,7 @@ func argStr(ar arg) string {
 func Disassemble(mem []byte) (string, emu.Code) {
 	st16 := &state{
 		mem: newMemory(mem),
-		reg: newRegState(make([]uint64, 30)),
+		reg: emu.NewReg16State(make([]uint64, 30)),
 	}
 	diff := new(emu.Diff)
 	if code := st16.Step(diff); code != emu.OK {

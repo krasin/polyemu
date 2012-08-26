@@ -5,7 +5,14 @@ import (
 	"testing"
 )
 
-var tests = []emu.Test{}
+var tests = []emu.Test{
+	{
+		Mem:     []byte{0x06, 0x45}, // mov r5, r6
+		Reg:     []uint64{R5: 1},
+		WantReg: []uint64{R5: 1, R6: 1, PC: 2},
+		N:       1,
+	},
+}
 
 func TestAll(t *testing.T) {
 	for testInd, tt := range tests {

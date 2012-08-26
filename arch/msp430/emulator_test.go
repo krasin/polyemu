@@ -14,8 +14,14 @@ var tests = []emu.Test{
 	},
 	{
 		Mem:     []byte{0x08, 0x47}, // mov r7, r8
-		Reg:     []uint64{R7: 1},
-		WantReg: []uint64{R7: 1, R8: 1, PC: 2},
+		Reg:     []uint64{R7: 5},
+		WantReg: []uint64{R7: 5, R8: 5, PC: 2},
+		N:       1,
+	},
+	{
+		Mem:     []byte{0x0a, 0x49}, // mov r9, r10
+		Reg:     []uint64{R9: 22},
+		WantReg: []uint64{R9: 22, R10: 22, PC: 2},
 		N:       1,
 	},
 }

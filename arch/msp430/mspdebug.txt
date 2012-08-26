@@ -1,0 +1,17 @@
+mspdebug - debugger / simulator for msp430.
+
+Install:
+
+sudo apt-get install mspdebug
+
+Run simulator:
+
+mspdebug sim
+
+Simulator / debugger commands:
+
+regs - show registers
+set R5 10 - set register value
+md addr n - show memory contents
+mw addr b0 b1 b2 ... - write memory contents
+step - theoretically, make a step. In practice, I was unable to get it working.

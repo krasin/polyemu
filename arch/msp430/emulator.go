@@ -49,11 +49,11 @@ func (m *memory) SetByte(ind int, val byte) {
 	m.diff = append(m.diff, emu.DiffPair{uint64(ind), uint64(val)})
 }
 
-func (m *memory) At(ind uint16) uint16 {
+func (m *memory) Word(ind uint16) uint16 {
 	return uint16(m.Byte(2*int(ind))) + (uint16(m.Byte(2*int(ind)+1)) << 8)
 }
 
-func (m *memory) Set(ind uint16, val uint16) emu.Code {
+func (m *memory) SetWord(ind uint16, val uint16) emu.Code {
 	m.SetByte(2*int(ind), byte(val&0xFF))
 	m.SetByte(2*int(ind)+1, byte((val>>8)&0xFF))
 	return emu.OK

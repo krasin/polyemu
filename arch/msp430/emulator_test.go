@@ -65,6 +65,12 @@ var tests = []emu.Test{
 		WantReg: []uint64{R7: 15, SP: 15, PC: 2},
 		N:       1,
 	},
+	{
+		Mem:     []byte{0x02, 0x45}, // mov r5, r2
+		Reg:     []uint64{R5: 5},
+		WantReg: []uint64{R2: 5, R5: 5, PC: 2},
+		N:       1,
+	},
 }
 
 func TestAll(t *testing.T) {

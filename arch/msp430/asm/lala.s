@@ -1,7 +1,7 @@
 	.text
 	.global _f
 
-_f:	mov.v R7, R1
+_f:	mov.v R5, R2
 	ret
 
 	.end

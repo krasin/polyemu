@@ -1,0 +1,5 @@
+Status of msp430 emulator:
+
+emulator.go - stub for emulator (nothing implemented)
+emulator_tests.go - few mov.v tests added
+asm/ - tools and data for mspdebug and msp430-gcc

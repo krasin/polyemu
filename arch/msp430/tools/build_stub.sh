@@ -6,4 +6,4 @@
 
 set -ue
 
-msp430-gcc -o tools/msp430-stub.elf tools/stub.c
+msp430-gcc -o tools/stub.elf tools/stub.c

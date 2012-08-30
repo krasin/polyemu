@@ -30,7 +30,10 @@ func (e *proxyEmulator) Step(st *emu.State, diff *emu.Diff) emu.Code {
 	if err != nil {
 		return emu.InternalError
 	}
-	if err = s.Close(); err != nil {
+	defer s.Close()
+	if _, err = io.WriteString(s.stdin, "reset\n"+
+		"regs\n"+
+		"exit\n"); err != nil {
 		return emu.InternalError
 	}
 	return emu.NotImplemented
@@ -57,5 +60,6 @@ func newProxyState() (s *proxyState, err error) {
 }
 
 func (s *proxyState) Close() error {
-	return s.cmd.Process.Kill()
+	s.cmd.Process.Kill()
+	return nil
 }

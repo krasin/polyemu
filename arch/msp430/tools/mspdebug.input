@@ -1,2 +1,2 @@
-prog tools/stub.elf
+reset
 regs

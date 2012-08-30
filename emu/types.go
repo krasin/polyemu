@@ -71,6 +71,8 @@ func (c Code) String() string {
 		return "NotImplemented"
 	case DecodeFailed:
 		return "DecodeFailed"
+	case InternalError:
+		return "InternalError"
 	}
 	return fmt.Sprintf("Code:%d", int(c))
 }
@@ -83,4 +85,5 @@ const (
 	Interrupt             = 4
 	NotImplemented        = 5
 	DecodeFailed          = 6
+	InternalError         = 7
 )

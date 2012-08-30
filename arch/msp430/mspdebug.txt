@@ -12,9 +12,7 @@ Simulator / debugger commands:
 
 First step:
 
-prog <path to msp430 elf file> -- this will init the simulator and load elf file into memory.
-This is required to use the simulator, even if elf file is not needed.
-
+reset - this will init the simulator
 regs - show registers
 set R5 10 - set register value
 md addr n - show memory contents

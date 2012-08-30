@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"time"
 
 	"github.com/krasin/polyemu/emu"
 )
@@ -54,7 +53,6 @@ func newProxyState() (s *proxyState, err error) {
 		return
 	}
 	err = s.cmd.Start()
-	time.Sleep(time.Second)
 	return
 }
 

@@ -63,7 +63,8 @@ func main() {
 
 	for i := 0; i < 11; i++ {
 		fmt.Printf("Step %d\n", i)
-		if _, code := e.Step(st); code != emu.OK {
+		diff := new(emu.Diff)
+		if code := e.Step(st, diff); code != emu.OK {
 			fmt.Printf("code = %v\n", code)
 		}
 		fmt.Printf("\n")

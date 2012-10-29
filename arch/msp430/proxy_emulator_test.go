@@ -1,5 +1,7 @@
 package msp430
 
+// +build !goci
+
 import (
 	"testing"
 
